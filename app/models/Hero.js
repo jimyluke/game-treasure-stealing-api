@@ -9,7 +9,8 @@ var Hero = sequelize.define('Hero', {
 		primaryKey: true
 	},
 	mint          	: Sequelize.STRING,
-	user_id 		: Sequelize.BIGINT
+	user_id 		: Sequelize.BIGINT,
+	active			: Sequelize.INTEGER
 },{
 	tableName    	: 'heroes',
 	//createdAt    	: 'created_at',

@@ -146,9 +146,15 @@ exports.info = async (req, res) => {
 	req.user.avatar = gravatar.url(email);
 	let heroes_mint = [];
 	let heroes = await Hero.findAll({ where: { user_id: req.user.id }});
+	let heroes_arr = [];
 	if(heroes !== null && heroes.length > 0){
 		heroes.forEach( hero => {
 			heroes_mint.push(hero.mint);
+			heroes_arr.push({
+				id: parseInt(hero.id),
+				mint: hero.mint,
+				active: hero.active
+			});
 		})
 	}
 
@@ -157,7 +163,8 @@ exports.info = async (req, res) => {
 		message: 'Load user info success',
 		data: {
 			user: req.user,
-			heroes: heroes_mint
+			heroes: heroes_mint,
+			heroes_data: heroes_arr
 		}
 	});
 }
