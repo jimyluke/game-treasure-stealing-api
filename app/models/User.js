@@ -15,7 +15,9 @@ var User = sequelize.define('User', {
 	password   			: Sequelize.STRING,
 	active      	    : Sequelize.INTEGER,
 	sol_balance       	: Sequelize.FLOAT,
-	loot_total        	: Sequelize.FLOAT,
+	total_loot        	: Sequelize.FLOAT,
+	total_loot_won      : Sequelize.FLOAT,
+	loose_loost        	: Sequelize.FLOAT,
   	avatar_url   		: Sequelize.STRING,
   	uid   			    : Sequelize.STRING
 },{

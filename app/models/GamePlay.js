@@ -1,26 +1,24 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 
-var Transaction = sequelize.define('Transaction', {
+var GamePlay = sequelize.define('GamePlay', {
 	id: {
 		type: Sequelize.BIGINT,
 		allowNull: false,
 		autoIncrement: true,
 		primaryKey: true
 	},
-	type          	: Sequelize.STRING,
-	amount      	: Sequelize.FLOAT,
-	event           : Sequelize.STRING,
 	user_id 		: Sequelize.BIGINT,
-	game_id 		: Sequelize.BIGINT,
-	description   	: Sequelize.TEXT,
-  	uid   			: Sequelize.STRING
+	data          	: Sequelize.JSON,
+	won				: Sequelize.INTEGER,
+	bonus			: Sequelize.INTEGER,
+	note			: Sequelize.TEXT
 },{
-	tableName    	: 'game_transactions',
+	tableName    	: 'games_play',
 	createdAt    	: 'created_at',
 	updatedAt    	: 'updated_at',
 	timestamps   	: true,
 	underscored  	: true
 });
 
-module.exports = Transaction;
+module.exports = GamePlay;

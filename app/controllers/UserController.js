@@ -27,3 +27,10 @@ exports.updateHeroStatus = async (req, res) => {
 		update: update
 	});
 }
+
+
+exports.enterGame = async (req, res) => {
+	res.json({ 
+		success: true
+	});
+}

@@ -6,6 +6,7 @@ var logger = require('morgan');
 var bodyParser = require('body-parser')
 
 var app = express();
+var cron = require('node-cron');
 
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -33,8 +34,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 const ApiRouter = require('./routes/api');
 const WebRouter = require('./routes/web');
-WebRouter.config(app)
-ApiRouter.config(app)
+WebRouter.config(app);
+ApiRouter.config(app);
+
+// For Cronjob
+cron.schedule('* * * * *', () => {
+  console.log('running a task every minute');
+});
+
+cron.schedule('0 17 * * *', () => {
+  console.log('Running a job at 17:00 at UTC timezone');
+}, {
+  scheduled: true,
+  timezone: "UTC"
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

@@ -20,10 +20,12 @@
     "locutus": "^2.0.16",
     "lodash": "^4.17.19",
     "morgan": "~1.9.1",
+    "node-cron": "^3.0.1",
     "nodemon": "^2.0.4",
     "passport": "^0.4.1",
     "pg": "^8.3.0",
     "sequelize": "^6.3.3",
+    "socket.io": "^4.5.1",
     "uuid": "^8.3.2",
     "validator": "^13.7.0"
   }
