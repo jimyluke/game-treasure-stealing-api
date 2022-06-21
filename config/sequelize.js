@@ -8,6 +8,12 @@ var Sequelize = require('sequelize')
         dialect: "postgres", // or 'sqlite', 'postgres', 'mariadb'
         port:    5432, // or 5432 (for postgres),
         logging: false
+    })
+  , cq_sequelize = new Sequelize(process.env.CQ_DB_DATABASE, process.env.CQ_DB_USERNAME, process.env.CQ_DB_PASSWORD, {
+        host: process.env.CQ_DB_HOST,
+        dialect: "postgres", // or 'sqlite', 'postgres', 'mariadb'
+        port:    5432, // or 5432 (for postgres),
+        logging: false
     });
 
-module.exports = {Sequelize, sequelize};
+module.exports = {Sequelize, sequelize, cq_sequelize};
