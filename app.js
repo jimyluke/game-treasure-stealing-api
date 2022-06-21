@@ -39,11 +39,11 @@ ApiRouter.config(app);
 
 // For Cronjob
 cron.schedule('* * * * *', () => {
-  console.log('running a task every minute');
+  //console.log('running a task every minute');
 });
 
 cron.schedule('0 17 * * *', () => {
-  console.log('Running a job at 17:00 at UTC timezone');
+  //console.log('Running a job at 17:00 at UTC timezone');
 }, {
   scheduled: true,
   timezone: "UTC"

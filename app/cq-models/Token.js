@@ -1,5 +1,7 @@
 //Store
 var {Sequelize, cq_sequelize} = require('../../config/sequelize.js');
+const DawnOfMan = require('./DawnOfMan')
+const WoodlandRespite = require('./WoodlandRespite')
 
 var Token = cq_sequelize.define('Token', {
 	id: {
@@ -25,5 +27,16 @@ var Token = cq_sequelize.define('Token', {
 	timestamps   	: true,
 	underscored  	: true
 });
+
+Token.prototype.getExtraInfo = async function(){
+	const tome = this.tome;
+	let info = null;
+	if(tome.indexOf('Dawn of Man') > -1){
+		info = await DawnOfMan.findOne({where: {token_number: this.token_number}});
+	}else{
+		info = await WoodlandRespite.findOne({where: {token_number: this.token_number}});
+	}
+	return info;
+}
 
 module.exports = Token;

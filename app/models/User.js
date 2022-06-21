@@ -1,5 +1,8 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
+const { Hero } = require('./');
+const { Token } = require('../cq-models');
+const _ = require('lodash');
 
 var User = sequelize.define('User', {
 	id: {
@@ -27,5 +30,25 @@ var User = sequelize.define('User', {
 	timestamps   	: true,
 	underscored  	: true
 });
+
+User.prototype.getGameInfo = async function() {
+	const user_id = parseInt(this.id);
+	const heroes = await Hero.findAll({where: {user_id: user_id, active: 1}});
+	let user_token_address = [];
+	if(heroes){
+		user_token_address = _.map(heroes, 'mint');
+		console.log(user_token_address);
+	}
+
+	const tokens = await Token.findAll({where: {token_address: user_token_address}});
+	if(tokens && tokens.length > 0){
+		tokens.forEach( async token => {
+			const token_info = await token.getExtraInfo();
+			console.log(token_info)
+		})
+	}
+
+	return 1;
+}
 
 module.exports = User;

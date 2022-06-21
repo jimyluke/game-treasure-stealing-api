@@ -28,7 +28,7 @@ var DawnOfMan = cq_sequelize.define('DawnOfMan', {
         allowNull: false
     },
 },{
-	tableName    	: 'woodland_respite',
+	tableName    	: 'dawn_of_man',
 	createdAt    	: 'created_at',
 	updatedAt    	: 'updated_at',
 	timestamps   	: true,

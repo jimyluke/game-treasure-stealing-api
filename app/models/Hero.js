@@ -8,7 +8,7 @@ var Hero = sequelize.define('Hero', {
 		autoIncrement: true,
 		primaryKey: true
 	},
-	mint          	: Sequelize.STRING,
+	mint          	: Sequelize.STRING, // token_address
 	user_id 		: Sequelize.BIGINT,
 	active			: Sequelize.INTEGER
 },{
