@@ -19,6 +19,7 @@
     "jsonwebtoken": "^8.5.1",
     "locutus": "^2.0.16",
     "lodash": "^4.17.19",
+    "moment": "^2.29.3",
     "morgan": "~1.9.1",
     "node-cron": "^3.0.1",
     "nodemon": "^2.0.4",
