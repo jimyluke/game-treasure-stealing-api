@@ -10,7 +10,9 @@ var HeroTierTicket = sequelize.define('HeroTierTicket', {
 	},
 	tier          	: Sequelize.STRING,
 	tickets      	: Sequelize.INTEGER,
-	tix_from_stats  : Sequelize.INTEGER
+	tix_from_stats  : Sequelize.INTEGER,
+	ev_class		: Sequelize.FLOAT,
+	post_rake_ev	: Sequelize.FLOAT
 },{
 	tableName    	: 'hero_tier_tickets',
 	timestamps   	: false,
