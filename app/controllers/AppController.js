@@ -13,7 +13,8 @@ exports.dev = async (req, res) => {
 	//const game_info = await user.getCalGameInfo();
 	//console.log(game_info);
 	const helper = new GameHelper();
-	helper.PrepareCalculation();
+	let data = await helper.PrizeCalc();
+	console.log(data);
 	
 	res.render('dev', { title: '4Dev' });
 }

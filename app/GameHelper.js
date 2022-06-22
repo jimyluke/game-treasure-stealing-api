@@ -54,7 +54,7 @@ class GameHelper {
         }
 
         const tokens = await Token.findAll({where: {token_address: tokens_address}});
-        let entry_cal = {};
+        let entry_calc = {};
         if(tokens && tokens.length > 0){
             let entry_total = 0;
             let ticket_total = 0;
@@ -91,18 +91,54 @@ class GameHelper {
             // Set data to property of object
             const EffectiveRake = await this.getEffectiveRakePercent();
             const PostRakePrizePool = (1-EffectiveRake)*TotalSpent;
-            entry_cal.NoRakePrizePool = TotalSpent;
-            entry_cal.PostRakePrizePool = PostRakePrizePool;
-            entry_cal.entry_total = entry_total;
-            entry_cal.ticket_total = ticket_total;
-            entry_cal.user_total = total_user;
-            entry_cal.EstUsers = Math.ceil(entry_total/total_user);
-            entry_cal.EstRakePerDay = TotalSpent - PostRakePrizePool;
+            entry_calc.NoRakePrizePool = TotalSpent;
+            entry_calc.PostRakePrizePool = PostRakePrizePool;
+            entry_calc.entry_total = entry_total;
+            entry_calc.ticket_total = ticket_total;
+            entry_calc.user_total = total_user;
+            entry_calc.EstUsers = Math.round(entry_total/total_user);
+            entry_calc.EstRakePerDay = TotalSpent - PostRakePrizePool;
         }
 
-        Option._update('last_update_entry_calc', JSON.stringify(entry_cal));
-        //console.log(entry_cal);
-        return entry_cal;
+        Option._update('last_update_entry_calcc', JSON.stringify(entry_calc));
+
+        return entry_calc;
+    }
+
+    /**
+     * [PrizeCalc description]
+     */
+    async PrizeCalc(){
+        const entry_calc = await this.PrepareCalculation();
+        let users_count = entry_calc.user_total; console.log(users_count);
+        let percent_of_user_paid = parseInt(await Option._get('percent_of_user_paid'));
+        const winning_users = Math.round((users_count*percent_of_user_paid/100)+1);
+        let max_prize = users_count > 5? 5: users_count;
+
+        let prize_data = {};
+        let percent_of_winning_users = [1/users_count*100,1.1364,3.79,6.95,87.73];
+        let percent_of_bounty = [25,15,17,10,33];
+
+        for(var i=0; i<max_prize; i++){
+            let no_of_winning_wallets = i === 0? percent_of_winning_users[i]/100*winning_users: Math.round(percent_of_winning_users[i]/100*winning_users);
+            let bounty = percent_of_bounty[i]/100*entry_calc.NoRakePrizePool;
+            let prize = 0;
+            if(no_of_winning_wallets !== 0){
+                prize = i === 0? bounty: bounty/no_of_winning_wallets;
+            }
+            prize_data[`pos_${i+1}`] = {
+                prize: prize,
+                bounty: Math.round(bounty),
+                no_of_winning_wallets: no_of_winning_wallets,
+                percent_of_winning_users: percent_of_winning_users[i],
+                percent_of_bounty: percent_of_bounty[i]
+            }
+        }
+
+        return {
+            winning_users_count: winning_users,
+            prize: prize_data
+        }
     }
 }
 
