@@ -6,6 +6,7 @@ var QuantityLookup 		= require('./QuantityLookup.js');
 var RefreshToken 		= require('./RefreshToken.js');
 var Transaction 		= require('./Transaction.js');
 var User 				= require('./User.js');
+var UserMeta 			= require('./UserMeta.js');
 
 module.exports = { 
 	GamePlay,
@@ -15,5 +16,6 @@ module.exports = {
 	QuantityLookup,
 	RefreshToken,
 	Transaction,
-	User
+	User,
+	UserMeta
 };

@@ -3,7 +3,7 @@
  */
 var {Sequelize, sequelize} = require('../config/sequelize.js');
 const Op = Sequelize.Op;
-const { Option, Hero, QuantityLookup, HeroTierTicket } = require('./models');
+const { Option, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
 const { Token } = require('./cq-models');
 var moment = require('moment');
 const _ = require('lodash');
@@ -41,10 +41,10 @@ class GameHelper {
         const heroes = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
         let tokens_address = [];
         let total_user = 0;
+        let unique_user_ids = [];
         if(heroes){
             tokens_address = _.map(heroes, 'mint');
             let user_ids = _.map(heroes, 'user_id');
-            let unique_user_ids = [];
             user_ids.forEach(id => {
                 if(unique_user_ids.indexOf(id) === -1){
                     unique_user_ids.push(id);
@@ -53,7 +53,12 @@ class GameHelper {
             total_user = unique_user_ids.length;
         }
 
+        const non_nft_entries = await UserMeta.findAll({where: {user_id: unique_user_ids, meta_key: 'non_nft_entries'}});
+        console.log(unique_user_ids);
+        console.log(non_nft_entries);
+
         const tokens = await Token.findAll({where: {token_address: tokens_address}});
+        const AVG_price_per_entry = 0.9;
         let entry_calc = {};
         if(tokens && tokens.length > 0){
             let entry_total = 0;
@@ -70,20 +75,15 @@ class GameHelper {
                 tokens_data.push(token_tmp);
             }));
 
-            let price_per_entry = 0;
-            const look = await QuantityLookup.findOne({where:{quantity_from: {[Op.lte]: entry_total}}, order: [['quantity_from', 'DESC']]});
-            if(look){
-                price_per_entry = look.value;
-            }
-
             // Get hero tier ticket data
             const hero_tier_data = await HeroTierTicket.findAll();
             tokens_data.forEach( token => {
                 var var_of_hero_tier = _.chain(hero_tier_data).filter(function (h) { return h.tier === token.hero_tier }).first().value();
                 const token_info = token.token_info;
                 const legacy = token_info.legacy;
-                let spent_per_hero = price_per_entry*legacy;
-                let ticket_per_hero = legacy*var_of_hero_tier.tickets;
+                let spent_per_hero = AVG_price_per_entry*legacy;
+                let extra_tix = legacy*var_of_hero_tier.tix_from_stats;
+                let ticket_per_hero = legacy*var_of_hero_tier.tickets + extra_tix;
                 TotalSpent += spent_per_hero;
                 ticket_total += ticket_per_hero;
             });

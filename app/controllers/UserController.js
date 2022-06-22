@@ -1,9 +1,9 @@
 /**
  * User Controller
  */
-const Hero = require('../models/Hero');
+const { Hero, UserMeta, GamePlay } = require('../models');
 const User = require('../models/User');
-const UserMeta = require('../models/UserMeta');
+var moment = require('moment');
 
 /**
  * [description]
@@ -66,6 +66,18 @@ exports.enterGame = async (req, res) => {
 	const user_id = parseInt(req.user.id);
 	const user = await User.findByPk(user_id);
 	const game_info = await user.getCalGameInfo();
+	const now = moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss');
+	//console.log(now);
+
+	let json_data = game_info;
+	await GamePlay.create({
+		user_id: user_id,
+		data: json_data,
+		won: 0,
+		bonus: 0,
+		note: '',
+		finished: 0
+	});
 
 	res.json({ 
 		success: true,

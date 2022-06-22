@@ -12,7 +12,8 @@ var GamePlay = sequelize.define('GamePlay', {
 	data          	: Sequelize.JSON,
 	won				: Sequelize.INTEGER,
 	bonus			: Sequelize.INTEGER,
-	note			: Sequelize.TEXT
+	note			: Sequelize.TEXT,
+	finished		: Sequelize.INTEGER
 },{
 	tableName    	: 'games_play',
 	createdAt    	: 'created_at',
