@@ -15,5 +15,6 @@ exports.config = function(app, _prefix){
 
 	// Update user
 	app.post(`${_prefix}/user/update-hero-status`, [authenticateToken, UserController.updateHeroStatus]);
+	app.post(`${_prefix}/user/update-non-nft-entries`, [authenticateToken, UserController.updateNonNftEntries]);
 	app.post(`${_prefix}/user/enter-game`, [authenticateToken, UserController.enterGame]);
 }
