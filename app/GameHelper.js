@@ -1,14 +1,21 @@
 /**
  * GameHelper Object Class
  */
-var {Sequelize, sequelize} = require('../config/sequelize.js');
+var {Sequelize, sequelize, cq_sequelize} = require('../config/sequelize.js');
 const Op = Sequelize.Op;
 const { Option, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
-const { Token } = require('./cq-models');
+const { Token, Character } = require('./cq-models');
 var moment = require('moment');
 const _ = require('lodash');
 
 class GameHelper {
+
+    constructor() {
+        // Constructor
+        this.unique_user_ids = [];
+        this.total_user = 0;
+        this.winning_users_count = 0;
+    }
 
     async getWakePercent(){
         let percent = await Option._get('wake_percent');
@@ -28,6 +35,25 @@ class GameHelper {
     async getEffectiveRakePercent(){
         return await this.getRawRakePercent() * await this.getWakePercent();
     }
+
+    // Stat for each hero
+    async getHeroStatByToken(token){
+        const query = `SELECT T.token_address, C.* FROM characters as C, tokens as T WHERE C.nft_id = T.id AND T.token_address = '${token}'`;
+        const CharacterInfo = await cq_sequelize.query(query, { type: cq_sequelize.QueryTypes.SELECT});
+        let stats = {
+            DexWisExtraTix: 0,
+            ConStrExtraTix: 0,
+            IntChaExtraTix: 0
+        };
+        if(CharacterInfo){
+            const info = CharacterInfo[0];
+            stats.DexWisExtraTix = Math.round(((info.dexterity+info.wisdom-20)/24)*10);
+            stats.ConStrExtraTix = Math.round(((info.constitution+info.strength-20)/24)*7);
+            stats.IntChaExtraTix = Math.round(((info.intelligence+info.charisma-20)/24)*3);
+        }
+        return stats;
+    }
+
     /**
      * Prepare for the result calculation
      * @return {object} [Results]
@@ -46,19 +72,31 @@ class GameHelper {
             tokens_address = _.map(heroes, 'mint');
             let user_ids = _.map(heroes, 'user_id');
             user_ids.forEach(id => {
-                if(unique_user_ids.indexOf(id) === -1){
-                    unique_user_ids.push(id);
+                let uid = parseInt(id);
+                if(unique_user_ids.indexOf(uid) === -1){
+                    unique_user_ids.push(uid);
                 }
             });
             total_user = unique_user_ids.length;
         }
 
+        this.unique_user_ids = unique_user_ids;
+        this.total_user = total_user;
+
+        const AVG_price_per_entry = 0.9;
+        const hero_tier_nne = await HeroTierTicket.findOne({where: {tier: 'Non-NFT'}});
         const non_nft_entries = await UserMeta.findAll({where: {user_id: unique_user_ids, meta_key: 'non_nft_entries'}});
-        console.log(unique_user_ids);
-        console.log(non_nft_entries);
+        let entry_total_nne = 0;
+        let ticket_total_nne = 0;
+        let TotalSpent_nne = 0;
+        non_nft_entries.forEach( nne => {
+            const nne_no = parseInt(nne.meta_value);
+            entry_total_nne += nne_no;
+            ticket_total_nne += nne_no * parseInt(hero_tier_nne.tickets);
+            TotalSpent_nne += nne_no*AVG_price_per_entry;
+        });
 
         const tokens = await Token.findAll({where: {token_address: tokens_address}});
-        const AVG_price_per_entry = 0.9;
         let entry_calc = {};
         if(tokens && tokens.length > 0){
             let entry_total = 0;
@@ -91,10 +129,10 @@ class GameHelper {
             // Set data to property of object
             const EffectiveRake = await this.getEffectiveRakePercent();
             const PostRakePrizePool = (1-EffectiveRake)*TotalSpent;
-            entry_calc.NoRakePrizePool = TotalSpent;
+            entry_calc.NoRakePrizePool = TotalSpent + TotalSpent_nne;
             entry_calc.PostRakePrizePool = PostRakePrizePool;
-            entry_calc.entry_total = entry_total;
-            entry_calc.ticket_total = ticket_total;
+            entry_calc.entry_total = entry_total + entry_total_nne;
+            entry_calc.ticket_total = ticket_total + ticket_total_nne;
             entry_calc.user_total = total_user;
             entry_calc.EstUsers = Math.round(entry_total/total_user);
             entry_calc.EstRakePerDay = TotalSpent - PostRakePrizePool;
@@ -109,11 +147,12 @@ class GameHelper {
      * [PrizeCalc description]
      */
     async PrizeCalc(){
-        const entry_calc = await this.PrepareCalculation();
-        let users_count = entry_calc.user_total; console.log(users_count);
+        const entry_calc = await this.PrepareCalculation(); console.log(entry_calc);
+        let users_count = entry_calc.user_total;
         let percent_of_user_paid = parseInt(await Option._get('percent_of_user_paid'));
         const winning_users = Math.round((users_count*percent_of_user_paid/100)+1);
-        let max_prize = users_count > 5? 5: users_count;
+        let max_prize = winning_users > 5? 5: winning_users;
+        this.winning_users_count = winning_users;
 
         let prize_data = {};
         let percent_of_winning_users = [1/users_count*100,1.1364,3.79,6.95,87.73];
@@ -135,10 +174,21 @@ class GameHelper {
             }
         }
 
-        return {
-            winning_users_count: winning_users,
-            prize: prize_data
-        }
+        return prize_data;
+    }
+
+    /**
+     * [PrizesDistribution description]
+     * The function should just pull random tickets until all [winners] prizes are distributed
+     */
+    async PrizesDistribution(){
+        const prize_data = await this.PrizeCalc();
+        const user_ids = this.unique_user_ids;
+        const winning_users_count = this.winning_users_count;
+        console.log(prize_data);
+        console.log(user_ids);
+        console.log(winning_users_count);
+        return true;
     }
 }
 

@@ -10,7 +10,8 @@ var Hero = sequelize.define('Hero', {
 	},
 	mint          	: Sequelize.STRING, // token_address
 	user_id 		: Sequelize.BIGINT,
-	active			: Sequelize.INTEGER
+	active			: Sequelize.INTEGER,
+	extra_data		: Sequelize.JSON
 },{
 	tableName    	: 'heroes',
 	//createdAt    	: 'created_at',

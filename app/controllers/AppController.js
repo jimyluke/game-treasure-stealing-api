@@ -13,7 +13,8 @@ exports.dev = async (req, res) => {
 	//const game_info = await user.getCalGameInfo();
 	//console.log(game_info);
 	const helper = new GameHelper();
-	let data = await helper.PrepareCalculation();
+	let data = await helper.PrizesDistribution();
+	//let data = await helper.getHeroStatByToken('HT3nEQEVJDttyAEKiTSeK2xEkJtZg8ieSVsPDnohosmg');
 	console.log(data);
 	
 	res.render('dev', { title: '4Dev' });

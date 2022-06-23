@@ -2,6 +2,7 @@
  * User Controller
  */
 const { Hero, UserMeta, GamePlay } = require('../models');
+const { Op } = require("sequelize");
 const User = require('../models/User');
 var moment = require('moment');
 
@@ -66,21 +67,36 @@ exports.enterGame = async (req, res) => {
 	const user_id = parseInt(req.user.id);
 	const user = await User.findByPk(user_id);
 	const game_info = await user.getCalGameInfo();
-	const now = moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss');
-	//console.log(now);
+	const TODAY_START = moment().startOf('day');
+	const NOW = moment().tz('UTC');
+
+	const game = await GamePlay.findOne({where: {
+      created_at: { 
+        [Op.gt]: TODAY_START,
+        [Op.lt]: NOW
+      },
+      finished: 0
+    }})
 
 	let json_data = game_info;
-	await GamePlay.create({
-		user_id: user_id,
-		data: json_data,
-		won: 0,
-		bonus: 0,
-		note: '',
-		finished: 0
-	});
+
+	if(!game){
+		await GamePlay.create({
+			user_id: user_id,
+			data: json_data,
+			won: 0,
+			bonus: 0,
+			note: '',
+			finished: 0
+		});
+	}else{
+		//console.log(game);
+	}
+	
 
 	res.json({ 
 		success: true,
-		game_info: game_info
+		game_info: game_info,
+		game: game
 	});
 }
