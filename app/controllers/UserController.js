@@ -71,23 +71,12 @@ exports.updateNonNftEntries = async (req, res) => {
 exports.enterGame = async (req, res) => {
 	const user_id = parseInt(req.user.id);
 	const user = await User.findByPk(user_id);
+	let game_id = await user.getCurrentGameId();
 	const game_info = await user.getCalGameInfo();
-	const TODAY_START = moment().startOf('day');
-	const NOW = moment().tz('UTC');
-
-	const game = await GamePlay.findOne({where: {
-		user_id: user_id,
-      	created_at: { 
-        	[Op.gt]: TODAY_START,
-        	[Op.lt]: NOW
-      	},
-      	finished: 0
-    }})
-
 	let json_data = game_info;
 
-	if(!game){
-		await GamePlay.create({
+	if(!game_id){
+		let game = await GamePlay.create({
 			user_id: user_id,
 			data: json_data,
 			won: 0,
@@ -95,14 +84,14 @@ exports.enterGame = async (req, res) => {
 			note: '',
 			finished: 0
 		});
+		game_id = parseInt(game.id);
 	}else{
 		//console.log(game);
 	}
 	
-
 	res.json({ 
 		success: true,
 		game_info: game_info,
-		game: game
+		game: game_id
 	});
 }

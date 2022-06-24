@@ -4,9 +4,11 @@
 var {Sequelize, sequelize, cq_sequelize} = require('../config/sequelize.js');
 const Op = Sequelize.Op;
 const { Option, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
+const Transaction = require('./models/Transaction');
 const { Token, Character } = require('./cq-models');
 var moment = require('moment');
 const _ = require('lodash');
+const { v4: uuidv4 } = require('uuid');
 
 class GameHelper {
 
@@ -63,6 +65,16 @@ class GameHelper {
         return point;
     }
 
+    async resetGame(){
+        Option._update('last_update_entry_calc', '{}');
+        UserMeta.update({meta_value: 0}, {where: {meta_key: 'non_nft_entries'}});
+        UserMeta.update(
+            {meta_value: '{"TotalSpent":0,"entry_total":0,"ticket_total":0,"ChanceOfWinning":0,"ChanceNotWin":0,"NoRakeEV":0,"PostRakeEV":0}'}, 
+            {where: {meta_key: 'current_entries_calc'}}
+        );
+        Hero.update({active:0},{where: {active: 1}});
+    }
+
     /**
      * Prepare for the result calculation
      * @return {object} [Results]
@@ -71,7 +83,7 @@ class GameHelper {
         let self = this;
 
         // Query all hero active of all user submitted a game today
-        let now = moment().format('YYYY-MM-DD HH:mm:ss');
+        let now = moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss');
         let query = `SELECT h.* FROM heroes AS h,games_play AS gp WHERE h.user_id=gp.user_id AND h.active=1 AND gp.created_at::date=('${now}'::timestamp)::date AND gp.created_at<='${now}'::timestamp`;
         const heroes = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
         let tokens_address = [];
@@ -157,7 +169,7 @@ class GameHelper {
      * [PrizeCalc description]
      */
     async PrizeCalc(){
-        const entry_calc = await this.PrepareCalculation(); console.log(entry_calc);
+        const entry_calc = await this.PrepareCalculation();
         let users_count = entry_calc.user_total;
         let percent_of_user_paid = parseInt(await Option._get('percent_of_user_paid'));
         const winning_users = Math.round((users_count*percent_of_user_paid/100)+1);
@@ -165,7 +177,7 @@ class GameHelper {
         this.winning_users_count = winning_users;
 
         let prize_data = {};
-        let percent_of_winning_users = [1/users_count*100,1.1364,3.79,6.95,87.73];
+        let percent_of_winning_users = [1/winning_users*100,1.1364,3.79,6.95,87.73];
         let percent_of_bounty = [25,15,17,10,33];
 
         for(var i=0; i<max_prize; i++){
@@ -178,7 +190,7 @@ class GameHelper {
             prize_data[`pos_${i+1}`] = {
                 prize: prize,
                 bounty: Math.round(bounty),
-                no_of_winning_wallets: no_of_winning_wallets,
+                number_of_winning_wallets: no_of_winning_wallets,
                 percent_of_winning_users: percent_of_winning_users[i],
                 percent_of_bounty: percent_of_bounty[i]
             }
@@ -193,11 +205,28 @@ class GameHelper {
      */
     async PrizesDistribution(){
         const prize_data = await this.PrizeCalc();
-        const user_ids = this.unique_user_ids;
+        let user_ids = this.unique_user_ids;
         const winning_users_count = this.winning_users_count;
-        console.log(prize_data);
-        console.log(user_ids);
-        console.log(winning_users_count);
+        
+        for (const [key, prize] of Object.entries(prize_data)) {
+            const user_count = Math.round(prize.number_of_winning_wallets);
+            for(var i=0;i<user_count;i++){
+                var user_id = user_ids[Math.floor(Math.random()*user_ids.length)];
+                user_ids = user_ids.filter(function(id){ return id != user_id; });
+                const transaction = await Transaction.create({
+                    type: 'prize',
+                    amount: prize.prize,
+                    event: `prize_for_${key}`,
+                    user_id: user_id,
+                    description: '',
+                    uid: uuidv4(),
+                    game_id: null
+                });
+
+                await transaction.updatePrizeForUser();
+            }
+        }
+
         return true;
     }
 }

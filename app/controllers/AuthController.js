@@ -144,26 +144,10 @@ exports.info = async (req, res) => {
 	const user_id = parseInt(req.user.id);
 	let email = req.user.email
 	req.user.avatar = gravatar.url(email);
-	let heroes_mint = [];
-	let heroes = await Hero.findAll({ where: { user_id: user_id }});
-	let heroes_arr = [];
-	if(heroes !== null && heroes.length > 0){
-		heroes.forEach( hero => {
-			heroes_mint.push(hero.mint);
-			heroes_arr.push({
-				id: parseInt(hero.id),
-				mint: hero.mint,
-				active: hero.active
-			});
-		})
-	}
-	const non_nft_entries = await UserMeta._get(user_id, 'non_nft_entries', true);
-	let current_entries_calc = await UserMeta._get(user_id, 'current_entries_calc', true);
-	if(current_entries_calc){
-		current_entries_calc = JSON.parse(current_entries_calc);
-	}else{
-		current_entries_calc = JSON.parse('{"TotalSpent":0,"entry_total":0,"ticket_total":0,"ChanceOfWinning":0,"ChanceNotWin":0,"NoRakeEV":0,"PostRakeEV":0}');
-	}
+	const user = await User.findByPk(user_id);
+	const {heroes_mint, heroes_data} = await user.getHeroes();
+	const non_nft_entries = await user.getNonNftEntries();
+	const current_entries_calc = await user.getCurrentEntriesCalc();
 
 	res.json({
 		success: true,
@@ -171,7 +155,7 @@ exports.info = async (req, res) => {
 		data: {
 			user: req.user,
 			heroes: heroes_mint,
-			heroes_data: heroes_arr,
+			heroes_data: heroes_data,
 			non_nft_entries: parseInt(non_nft_entries),
 			current_entries: current_entries_calc
 		}

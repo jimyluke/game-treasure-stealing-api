@@ -15,9 +15,9 @@ exports.dev = async (req, res) => {
 	//console.log(game_info);
 	
 	const helper = new GameHelper();
-	let data = await helper.PrizesDistribution();
+	let data = await helper.resetGame();
 	//let data = await helper.getHeroStatByToken('HT3nEQEVJDttyAEKiTSeK2xEkJtZg8ieSVsPDnohosmg');
-	console.log(data);
+	// console.log(data);
 	
 	//const simulator = new GameSimulatorTest();
 	//await simulator.createGameForAllUser();

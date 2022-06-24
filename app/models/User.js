@@ -1,9 +1,10 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 const { Op } = require("sequelize");
-const { Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
+const { GamePlay, Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
 const { Token } = require('../cq-models');
 const _ = require('lodash');
+var moment = require('moment');
 
 var User = sequelize.define('User', {
 	id: {
@@ -31,6 +32,24 @@ var User = sequelize.define('User', {
 	timestamps   	: true,
 	underscored  	: true
 });
+
+User.prototype.getCurrentGameId = async function(){
+	const TODAY_START = moment().tz('UTC').startOf('day');
+	const NOW = moment().tz('UTC');
+	console.log(TODAY_START, NOW );
+
+	const game = await GamePlay.findOne({where: {
+		user_id: parseInt(this.id),
+      	created_at: { 
+        	[Op.gt]: TODAY_START,
+        	[Op.lt]: NOW
+      	},
+      	finished: 0
+    }});
+    console.log(game);
+
+    return game !== null? parseInt(game.id): 0;
+}
 
 User.prototype.getCalGameInfo = async function() {
 	const user_id = parseInt(this.id);
@@ -126,6 +145,38 @@ User.prototype.getCalGameInfo = async function() {
 	//console.log(entry_cal);
 
 	return entry_cal;
+}
+
+User.prototype.getNonNftEntries = async function() {
+	const non_nft_entries = await UserMeta._get(parseInt(this.id), 'non_nft_entries', true);
+	return parseInt(non_nft_entries);
+}
+
+User.prototype.getCurrentEntriesCalc = async function() {
+	let current_entries_calc = await UserMeta._get(parseInt(this.id), 'current_entries_calc', true);
+	if(current_entries_calc){
+		current_entries_calc = JSON.parse(current_entries_calc);
+	}else{
+		current_entries_calc = JSON.parse('{"TotalSpent":0,"entry_total":0,"ticket_total":0,"ChanceOfWinning":0,"ChanceNotWin":0,"NoRakeEV":0,"PostRakeEV":0}');
+	}
+	return current_entries_calc;
+}
+
+User.prototype.getHeroes = async function(){
+	let heroes_mint = [];
+	let heroes = await Hero.findAll({ where: { user_id: parseInt(this.id) }});
+	let heroes_arr = [];
+	if(heroes !== null && heroes.length > 0){
+		heroes.forEach( hero => {
+			heroes_mint.push(hero.mint);
+			heroes_arr.push({
+				id: parseInt(hero.id),
+				mint: hero.mint,
+				active: hero.active
+			});
+		})
+	}
+	return {heroes_mint: heroes_mint, heroes_data: heroes_arr};
 }
 
 module.exports = User;
