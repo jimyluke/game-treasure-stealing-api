@@ -16,7 +16,7 @@ exports.updateHeroStatus = async (req, res) => {
 	// console.log(req)
 	let update = false;
 	const hero_mint = req.body.hero_mint;
-	const user_id = req.user.id;
+	const user_id = parseInt(req.user.id);
 
 	const hero = await Hero.findOne({ where: {mint: hero_mint, user_id: user_id} })
 	if(hero){
@@ -31,9 +31,14 @@ exports.updateHeroStatus = async (req, res) => {
 		update = await hero.save();
 	}
 
+	const user = await User.findByPk(user_id);
+	const game_info = await user.getCalGameInfo();
+	UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(game_info));
+
 	res.json({ 
 		success: true,
-		update: update
+		update: update,
+		game_info: game_info
 	});
 }
 

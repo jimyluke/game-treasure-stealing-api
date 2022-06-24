@@ -96,10 +96,22 @@ User.prototype.getCalGameInfo = async function() {
 	}
 
 	let game_calc = await Option._get('last_update_entry_calc');
-	game_calc = JSON.parse(game_calc);
-
+	if(game_calc === '' || game_calc === null){
+		game_calc = {
+			NoRakePrizePool: 0,
+            PostRakePrizePool: 0,
+            entry_total: 0,
+            ticket_total: 0,
+            user_total: 0,
+            EstUsers: 0,
+            EstRakePerDay: 0
+		}
+	}else{
+		game_calc = JSON.parse(game_calc);
+	}
+	
 	// Set data to property of object
-	const ChanceOfWinning = ticket_total/game_calc.ticket_total;
+	const ChanceOfWinning = game_calc.ticket_total === 0? 0: ticket_total/game_calc.ticket_total;
 	const ChanceNotWin = 1 - ChanceOfWinning;
 	const NoRakeEV = (ChanceOfWinning*game_calc.NoRakePrizePool)+(-ChanceNotWin*TotalSpent);
 	const PostRakeEV = (ChanceOfWinning*game_calc.PostRakePrizePool)+(-ChanceNotWin*TotalSpent);

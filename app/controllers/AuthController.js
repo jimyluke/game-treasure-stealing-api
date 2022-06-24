@@ -1,6 +1,5 @@
 const User = require('../models/User');
-const Hero = require('../models/Hero');
-const RefreshToken = require('../models/RefreshToken');
+const { Hero, UserMeta, RefreshToken } = require('../models');
 
 //var qs = require('qs');
 const bcrypt = require('bcrypt');
@@ -142,10 +141,11 @@ exports.refresh_token = async (req, res) => {
  * @return {[type]}     [description]
  */
 exports.info = async (req, res) => {
+	const user_id = parseInt(req.user.id);
 	let email = req.user.email
 	req.user.avatar = gravatar.url(email);
 	let heroes_mint = [];
-	let heroes = await Hero.findAll({ where: { user_id: req.user.id }});
+	let heroes = await Hero.findAll({ where: { user_id: user_id }});
 	let heroes_arr = [];
 	if(heroes !== null && heroes.length > 0){
 		heroes.forEach( hero => {
@@ -157,6 +157,13 @@ exports.info = async (req, res) => {
 			});
 		})
 	}
+	const non_nft_entries = await UserMeta._get(user_id, 'non_nft_entries', true);
+	let current_entries_calc = await UserMeta._get(user_id, 'current_entries_calc', true);
+	if(current_entries_calc){
+		current_entries_calc = JSON.parse(current_entries_calc);
+	}else{
+		current_entries_calc = JSON.parse('{"TotalSpent":0,"entry_total":0,"ticket_total":0,"ChanceOfWinning":0,"ChanceNotWin":0,"NoRakeEV":0,"PostRakeEV":0}');
+	}
 
 	res.json({
 		success: true,
@@ -164,7 +171,9 @@ exports.info = async (req, res) => {
 		data: {
 			user: req.user,
 			heroes: heroes_mint,
-			heroes_data: heroes_arr
+			heroes_data: heroes_arr,
+			non_nft_entries: parseInt(non_nft_entries),
+			current_entries: current_entries_calc
 		}
 	});
 }

@@ -54,6 +54,15 @@ class GameHelper {
         return stats;
     }
 
+    async getExtraTicketsfromHeroStats(token){
+        const stats = await this.getHeroStatByToken(token);
+        let point = 0;
+        for (const [key, value] of Object.entries(stats)) {
+            point += value;
+        }
+        return point;
+    }
+
     /**
      * Prepare for the result calculation
      * @return {object} [Results]
