@@ -138,7 +138,8 @@ class GameHelper {
             entry_calc.EstRakePerDay = TotalSpent - PostRakePrizePool;
         }
 
-        Option._update('last_update_entry_calcc', JSON.stringify(entry_calc));
+        // Update this will use for single user calc [PostRake EV, NoRake EV]
+        Option._update('last_update_entry_calc', JSON.stringify(entry_calc));
 
         return entry_calc;
     }

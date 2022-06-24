@@ -71,11 +71,12 @@ exports.enterGame = async (req, res) => {
 	const NOW = moment().tz('UTC');
 
 	const game = await GamePlay.findOne({where: {
-      created_at: { 
-        [Op.gt]: TODAY_START,
-        [Op.lt]: NOW
-      },
-      finished: 0
+		user_id: user_id,
+      	created_at: { 
+        	[Op.gt]: TODAY_START,
+        	[Op.lt]: NOW
+      	},
+      	finished: 0
     }})
 
 	let json_data = game_info;

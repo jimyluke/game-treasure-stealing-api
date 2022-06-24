@@ -1,7 +1,7 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 const { Op } = require("sequelize");
-const { Hero, QuantityLookup, HeroTierTicket } = require('./');
+const { Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
 const { Token } = require('../cq-models');
 const _ = require('lodash');
 
@@ -42,12 +42,25 @@ User.prototype.getCalGameInfo = async function() {
 
 	const tokens = await Token.findAll({where: {token_address: user_token_address}});
 
+	// get Non-NFT
+	let non_nft_entries = 0;
+	let user_nne = await UserMeta._get(user_id, 'non_nft_entries', true);
+	if(user_nne){
+		non_nft_entries = parseInt(user_nne);
+	}
+
 	let entry_cal = {};
+	let entry_total = 0;
+	let ticket_total = 0;
+	let TotalSpent = 0;
+	let price_per_entry = 0;
+
+	const getPricePerEntry = async (entry_total) => {
+		const look = await QuantityLookup.findOne({where:{quantity_from: {[Op.lte]: entry_total}}, order: [['quantity_from', 'DESC']]});
+		return look !== null? look.value: 0;
+	}
+
 	if(tokens && tokens.length > 0){
-		let entry_total = 0;
-		let ticket_total = 0;
-		let TotalSpent = 0;
-		
 		let tokens_data = [];
 		await Promise.all(tokens.map(async (token) => {
 			let token_tmp = token;
@@ -58,11 +71,8 @@ User.prototype.getCalGameInfo = async function() {
 			tokens_data.push(token_tmp);
 		}));
 
-		let price_per_entry = 0;
-		const look = await QuantityLookup.findOne({where:{quantity_from: {[Op.lte]: entry_total}}, order: [['quantity_from', 'DESC']]});
-		if(look){
-			price_per_entry = look.value;
-		}
+		entry_total += non_nft_entries; // addition Non-NFT amount
+		price_per_entry = await getPricePerEntry(entry_total);
 
 		// Get hero tier ticket data
 		const hero_tier_data = await HeroTierTicket.findAll();
@@ -75,16 +85,33 @@ User.prototype.getCalGameInfo = async function() {
 			TotalSpent += spent_per_hero;
 			ticket_total += ticket_per_hero;
 		});
-
-		// Set data to property of object
-		entry_cal.TotalSpent = TotalSpent;
-		entry_cal.entry_total = entry_total;
-		entry_cal.ticket_total = ticket_total;
-		entry_cal.ChanceOfWinning = 0;
-		entry_cal.ChanceNotWin = 0;
-		entry_cal.NoRakeEV = 0;
-		entry_cal.PostRakeEV = 0;
 	}
+
+	if(non_nft_entries > 0){
+		price_per_entry = await getPricePerEntry(non_nft_entries);
+		const hero_tier_nne = await HeroTierTicket.findOne({where: {tier: 'Non-NFT'}});
+		ticket_total += non_nft_entries * parseInt(hero_tier_nne.tickets);
+		entry_total += non_nft_entries;
+		TotalSpent += price_per_entry*non_nft_entries;
+	}
+
+	let game_calc = await Option._get('last_update_entry_calc');
+	game_calc = JSON.parse(game_calc);
+
+	// Set data to property of object
+	const ChanceOfWinning = ticket_total/game_calc.ticket_total;
+	const ChanceNotWin = 1 - ChanceOfWinning;
+	const NoRakeEV = (ChanceOfWinning*game_calc.NoRakePrizePool)+(-ChanceNotWin*TotalSpent);
+	const PostRakeEV = (ChanceOfWinning*game_calc.PostRakePrizePool)+(-ChanceNotWin*TotalSpent);
+
+	entry_cal.TotalSpent = TotalSpent;
+	entry_cal.entry_total = entry_total;
+	entry_cal.ticket_total = ticket_total;
+	entry_cal.ChanceOfWinning = ChanceOfWinning;
+	entry_cal.ChanceNotWin = ChanceNotWin;
+	entry_cal.NoRakeEV = NoRakeEV;
+	entry_cal.PostRakeEV = PostRakeEV;
+	//console.log(entry_cal);
 
 	return entry_cal;
 }
