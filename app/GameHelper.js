@@ -3,7 +3,7 @@
  */
 var {Sequelize, sequelize, cq_sequelize} = require('../config/sequelize.js');
 const Op = Sequelize.Op;
-const { Option, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
+const { Option, GamePlay, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
 const Transaction = require('./models/Transaction');
 const { Token, Character } = require('./cq-models');
 var moment = require('moment');
@@ -82,25 +82,25 @@ class GameHelper {
 	async PrepareCalculation(){
         let self = this;
 
-        // Query all hero active of all user submitted a game today
-        let now = moment().tz('UTC').format('YYYY-MM-DD HH:mm:ss');
-        let query = `SELECT h.* FROM heroes AS h,games_play AS gp WHERE h.user_id=gp.user_id AND h.active=1 AND gp.created_at::date=('${now}'::timestamp)::date AND gp.created_at<='${now}'::timestamp`;
-        const heroes = await sequelize.query(query, { type: sequelize.QueryTypes.SELECT});
-        let tokens_address = [];
-        let total_user = 0;
-        let unique_user_ids = [];
-        if(heroes){
-            tokens_address = _.map(heroes, 'mint');
-            let user_ids = _.map(heroes, 'user_id');
-            user_ids.forEach(id => {
-                let uid = parseInt(id);
-                if(unique_user_ids.indexOf(uid) === -1){
-                    unique_user_ids.push(uid);
-                }
-            });
-            total_user = unique_user_ids.length;
-        }
+        const TODAY_START = moment().tz('UTC').startOf('day');
+        const NOW = moment().tz('UTC');
 
+        const games = await GamePlay.findAll({where: {
+            created_at: { 
+                [Op.gt]: TODAY_START,
+                [Op.lt]: NOW
+            },
+            finished: 0
+        }});
+        //console.log(games);
+        let unique_user_ids = _.map(games, 'user_id');
+        unique_user_ids = unique_user_ids.map(function (id) { return parseInt(id); });
+
+        // Query all hero active of all user submitted a game today
+        const heroes = await Hero.findAll({where: {user_id: unique_user_ids, active: 1}});
+        
+        let tokens_address = heroes !== null? _.map(heroes, 'mint'): [];
+        let total_user = unique_user_ids.length;
         this.unique_user_ids = unique_user_ids;
         this.total_user = total_user;
 
@@ -169,7 +169,7 @@ class GameHelper {
      * [PrizeCalc description]
      */
     async PrizeCalc(){
-        const entry_calc = await this.PrepareCalculation();
+        const entry_calc = await this.PrepareCalculation(); console.log(entry_calc);
         let users_count = entry_calc.user_total;
         let percent_of_user_paid = parseInt(await Option._get('percent_of_user_paid'));
         const winning_users = Math.round((users_count*percent_of_user_paid/100)+1);
@@ -204,7 +204,7 @@ class GameHelper {
      * The function should just pull random tickets until all [winners] prizes are distributed
      */
     async PrizesDistribution(){
-        const prize_data = await this.PrizeCalc();
+        const prize_data = await this.PrizeCalc(); console.log(prize_data);
         let user_ids = this.unique_user_ids;
         const winning_users_count = this.winning_users_count;
         
@@ -213,17 +213,17 @@ class GameHelper {
             for(var i=0;i<user_count;i++){
                 var user_id = user_ids[Math.floor(Math.random()*user_ids.length)];
                 user_ids = user_ids.filter(function(id){ return id != user_id; });
-                const transaction = await Transaction.create({
-                    type: 'prize',
-                    amount: prize.prize,
-                    event: `prize_for_${key}`,
-                    user_id: user_id,
-                    description: '',
-                    uid: uuidv4(),
-                    game_id: null
-                });
+                // const transaction = await Transaction.create({
+                //     type: 'prize',
+                //     amount: prize.prize,
+                //     event: `prize_for_${key}`,
+                //     user_id: user_id,
+                //     description: '',
+                //     uid: uuidv4(),
+                //     game_id: null
+                // });
 
-                await transaction.updatePrizeForUser();
+                // await transaction.updatePrizeForUser();
             }
         }
 

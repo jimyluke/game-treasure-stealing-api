@@ -54,8 +54,7 @@ exports.updateNonNftEntries = async (req, res) => {
 	await UserMeta._update(user_id, 'non_nft_entries', entries);
 	const user = await User.findByPk(user_id);
 	const game_info = await user.getCalGameInfo();
-	UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(game_info));
-
+	
 	res.json({ 
 		success: true,
 		game_info: game_info

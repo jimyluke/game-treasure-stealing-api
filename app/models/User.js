@@ -143,6 +143,7 @@ User.prototype.getCalGameInfo = async function() {
 	entry_cal.NoRakeEV = NoRakeEV;
 	entry_cal.PostRakeEV = PostRakeEV;
 	//console.log(entry_cal);
+	UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(entry_cal));
 
 	return entry_cal;
 }
