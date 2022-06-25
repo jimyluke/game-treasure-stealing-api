@@ -1,5 +1,8 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
+const Token = require('../cq-models/Token');
+const Character = require('../cq-models/Character');
+const MetaData = require('../cq-models/MetaData');
 
 var Hero = sequelize.define('Hero', {
 	id: {
@@ -19,5 +22,11 @@ var Hero = sequelize.define('Hero', {
 	timestamps   	: false,
 	underscored  	: true
 });
+
+Hero.getTokenInfoByArr = async function(tokens_address){
+	if(typeof tokens_address !== 'object')
+		return null;
+	return await Token.findAll({ include:[{model: Character, required:true},{model: MetaData, required:true}], where: {token_address: tokens_address} });
+}
 
 module.exports = Hero;

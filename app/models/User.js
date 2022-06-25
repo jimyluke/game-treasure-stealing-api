@@ -177,6 +177,10 @@ User.prototype.getHeroes = async function(){
 			});
 		})
 	}
+
+	const heroes_info = await Hero.getTokenInfoByArr(heroes_mint);
+	//console.log(heroes_info[0].MetaDatum);
+
 	return {heroes_mint: heroes_mint, heroes_data: heroes_arr};
 }
 
