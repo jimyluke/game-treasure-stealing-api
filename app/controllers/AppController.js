@@ -34,6 +34,8 @@ exports.getGameInfo = async (req, res) => {
 	var duration = moment.duration(moment(wake_time).tz('UTC').diff(now));
     const seconds = duration.asSeconds();
     const bonenosher_status = await Option._get('bonenosher_status');
+    let last_game = await Option._get('last_update_entry_calc');
+    last_game = JSON.parse(last_game);
 
 	const game_info = {
 		time_now: now,
@@ -41,7 +43,7 @@ exports.getGameInfo = async (req, res) => {
 		seconds: seconds,
 		bonenosher_status: bonenosher_status,
 		bonenosher_bounty: {
-			total: 0,
+			total: last_game.NoRakePrizePool,
 			loose: 0
 		},
 		queued_thieves: 0,

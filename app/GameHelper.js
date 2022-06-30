@@ -177,12 +177,38 @@ class GameHelper {
         this.winning_users_count = winning_users;
 
         let prize_data = {};
+        
+        // % of winning users 0.40% | 1.14% | 3.79% | 6.95% | 87.73%
         let percent_of_winning_users = [1/winning_users*100,1.1364,3.79,6.95,87.73];
         let percent_of_bounty = [25,15,17,10,33];
 
+        /*
+         66% Wake 33% Sleep
+         On sleep 80% pot goes to users by raffle (25% of unique wallets) 20% rolls over to next day. Entries reset.
+         On wake 66% of pot rolls over to next day. 33% raked. Entries roll over too.
+         */
+        let rakePrize = 0;
+        let rakePrizeNextDay = 0;
+        let bonenosher_status = await Option._get('bonenosher_status') || 'sleep'; // wake | sleep
+        if(bonenosher_status === 'sleep'){
+            rakePrize = entry_calc.NoRakePrizePool*80/100;
+            rakePrizeNextDay = entry_calc.NoRakePrizePool*20/100;
+        }else{
+            rakePrize = entry_calc.NoRakePrizePool*33/100;
+            rakePrizeNextDay = entry_calc.NoRakePrizePool*66/100;
+        }
+
+        // Get rake price last day
+        const rakePriceLastDay = await Option._get('rake_prize_next_day') || 0;
+        rakePrize = rakePrize + parseFloat(rakePriceLastDay);
+
+        // Store in database
+        Option._update('rake_prize_next_day', rakePrizeNextDay);
+        //console.log(' Rake prize: ', rakePrize, rakePrizeNextDay);
+
         for(var i=0; i<max_prize; i++){
             let no_of_winning_wallets = i === 0? percent_of_winning_users[i]/100*winning_users: Math.round(percent_of_winning_users[i]/100*winning_users);
-            let bounty = percent_of_bounty[i]/100*entry_calc.NoRakePrizePool;
+            let bounty = percent_of_bounty[i]/100*rakePrize;
             let prize = 0;
             if(no_of_winning_wallets !== 0){
                 prize = i === 0? bounty: bounty/no_of_winning_wallets;
