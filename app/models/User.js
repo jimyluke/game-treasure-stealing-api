@@ -179,7 +179,9 @@ User.prototype.getHeroes = async function(){
 	}
 
 	const heroes_info = await Hero.getTokenInfoByArr(heroes_mint);
-	//console.log(heroes_info[0].MetaDatum);
+	heroes_arr.forEach( hero => {
+		hero.info = _.chain(heroes_info).filter(function (hi) { return hi.token_address === hero.mint }).first().value();
+	})
 
 	return {heroes_mint: heroes_mint, heroes_data: heroes_arr};
 }
