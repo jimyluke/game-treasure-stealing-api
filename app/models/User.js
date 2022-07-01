@@ -1,7 +1,7 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 const { Op } = require("sequelize");
-const { GamePlay, Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
+const { Game, GamePlaying, Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
 const { Token } = require('../cq-models');
 const _ = require('lodash');
 var moment = require('moment');
@@ -36,9 +36,9 @@ var User = sequelize.define('User', {
 User.prototype.getCurrentGameId = async function(){
 	const TODAY_START = moment().tz('UTC').startOf('day');
 	const NOW = moment().tz('UTC');
-	console.log(TODAY_START, NOW );
+	//console.log(TODAY_START, NOW );
 
-	const game = await GamePlay.findOne({where: {
+	const game = await GamePlaying.findOne({where: {
 		user_id: parseInt(this.id),
       	created_at: { 
         	[Op.gt]: TODAY_START,
@@ -51,6 +51,7 @@ User.prototype.getCurrentGameId = async function(){
     return game !== null? parseInt(game.id): 0;
 }
 
+// Calc game info each user
 User.prototype.getCalGameInfo = async function() {
 	const user_id = parseInt(this.id);
 	const heroes = await Hero.findAll({where: {user_id: user_id, active: 1}});
@@ -114,7 +115,8 @@ User.prototype.getCalGameInfo = async function() {
 		TotalSpent += price_per_entry*non_nft_entries;
 	}
 
-	let game_calc = await Option._get('last_update_entry_calc');
+	//let game_calc = await Option._get('last_update_entry_calc');
+	let game_calc = await Game.getData();
 	if(game_calc === '' || game_calc === null){
 		game_calc = {
 			NoRakePrizePool: 0,
@@ -125,8 +127,6 @@ User.prototype.getCalGameInfo = async function() {
             EstUsers: 0,
             EstRakePerDay: 0
 		}
-	}else{
-		game_calc = JSON.parse(game_calc);
 	}
 	
 	// Set data to property of object

@@ -1,10 +1,12 @@
 /**
  * User Controller
  */
-const { Hero, UserMeta, GamePlay } = require('../models');
+const { Hero, UserMeta, GamePlaying } = require('../models');
 const { Op } = require("sequelize");
 const User = require('../models/User');
+const Game = require('../models/Game');
 var moment = require('moment');
+const GameHelper = require('../GameHelper');
 
 /**
  * [description]
@@ -31,6 +33,10 @@ exports.updateHeroStatus = async (req, res) => {
 		update = await hero.save();
 	}
 
+	// Update current game
+	const helper = new GameHelper();
+	helper.PrepareCalculation();
+
 	const user = await User.findByPk(user_id);
 	const game_info = await user.getCalGameInfo();
 	UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(game_info));
@@ -52,6 +58,11 @@ exports.updateNonNftEntries = async (req, res) => {
 	const user_id = parseInt(req.user.id);
 	const entries = req.body.entries || 0;
 	await UserMeta._update(user_id, 'non_nft_entries', entries);
+
+	// Update current game
+	const helper = new GameHelper();
+	helper.PrepareCalculation();
+
 	const user = await User.findByPk(user_id);
 	const game_info = await user.getCalGameInfo();
 	
@@ -70,27 +81,41 @@ exports.updateNonNftEntries = async (req, res) => {
 exports.enterGame = async (req, res) => {
 	const user_id = parseInt(req.user.id);
 	const user = await User.findByPk(user_id);
-	let game_id = await user.getCurrentGameId();
+
+	let game_id = await Game.getCurrentId();
+	// Check game today is created
+	if(!game_id){
+		const game = Game.create({data: {}, end: 0});
+		game_id = parseInt(game.id);
+	}
+
+	let game_playing_id = await user.getCurrentGameId();
 	const game_info = await user.getCalGameInfo();
 	let json_data = game_info;
 
-	if(!game_id){
-		let game = await GamePlay.create({
+	if(!game_playing_id){
+		let game_playing = await GamePlaying.create({
 			user_id: user_id,
+			game_id: game_id,
 			data: json_data,
 			won: 0,
 			bonus: 0,
 			note: '',
-			finished: 0
+			heroes: [],
+			finished: 0,
+			winning_hero: ''
 		});
-		game_id = parseInt(game.id);
+		game_playing_id = parseInt(game_playing.id);
 	}else{
 		//console.log(game);
 	}
+
+	const helper = new GameHelper();
+	helper.PrepareCalculation();
 	
 	res.json({ 
 		success: true,
 		game_info: game_info,
-		game: game_id
+		game_playing_id: game_playing_id
 	});
 }

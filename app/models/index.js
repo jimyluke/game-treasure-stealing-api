@@ -1,4 +1,5 @@
-var GamePlay 			= require('./GamePlay.js');
+var Game 				= require('./Game.js');
+var GamePlaying 		= require('./GamePlaying.js');
 var Hero 				= require('./Hero.js');
 var HeroTierTicket 		= require('./HeroTierTicket.js');
 var Option 				= require('./Option.js');
@@ -9,7 +10,8 @@ var User 				= require('./User.js');
 var UserMeta 			= require('./UserMeta.js');
 
 module.exports = { 
-	GamePlay,
+	Game,
+	GamePlaying,
 	Hero,
 	HeroTierTicket,
 	Option,

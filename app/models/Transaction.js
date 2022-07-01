@@ -1,6 +1,7 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 var User = require('../Models/User');
+var GamePlaying = require('../Models/GamePlaying');
 
 var Transaction = sequelize.define('Transaction', {
 	id: {
@@ -28,6 +29,7 @@ Transaction.prototype.updatePrizeForUser = async function(){
 	const user = await User.findByPk(parseInt(this.user_id));
 	const game_id = await user.getCurrentGameId();
 	if(game_id){
+		GamePlaying.update({finished: 1}, {where: {id: game_id}});
 		this.update({game_id: game_id});
 		this.save();
 	}

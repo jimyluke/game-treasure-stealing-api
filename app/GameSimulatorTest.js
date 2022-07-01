@@ -1,7 +1,7 @@
 /**
  * Game simulator class for test
  */
-const { GamePlay, Hero, UserMeta } = require('./models');
+const { GamePlaying, Hero, UserMeta } = require('./models');
 const User = require('./models/User');
 const { Op } = require("sequelize");
 var moment = require('moment');
@@ -59,7 +59,7 @@ class GameSimulatorTest{
 				const TODAY_START = moment().tz('UTC').startOf('day');
 				const NOW = moment().tz('UTC');
 
-				const game = await GamePlay.findOne({where: {
+				const game = await GamePlaying.findOne({where: {
 					user_id: user_id,
 			      	created_at: { 
 			        	[Op.gt]: TODAY_START,
@@ -70,7 +70,7 @@ class GameSimulatorTest{
 
 				let json_data = game_info;
 			    if(!game){
-					await GamePlay.create({
+					await GamePlaying.create({
 						user_id: user_id,
 						data: json_data,
 						won: 0,

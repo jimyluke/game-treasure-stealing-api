@@ -43,7 +43,7 @@ cron.schedule('* * * * *', () => {
 });
 
 cron.schedule('0 17 * * *', () => {
-  //console.log('Running a job at 17:00 at UTC timezone');
+  console.log('Running a job at 17:00 at UTC timezone');
 }, {
   scheduled: true,
   timezone: "UTC"

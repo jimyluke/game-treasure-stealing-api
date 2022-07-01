@@ -3,7 +3,7 @@
  */
 var {Sequelize, sequelize, cq_sequelize} = require('../config/sequelize.js');
 const Op = Sequelize.Op;
-const { Option, GamePlay, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
+const { Option, Game, GamePlaying, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
 const Transaction = require('./models/Transaction');
 const { Token, Character } = require('./cq-models');
 var moment = require('moment');
@@ -19,6 +19,10 @@ class GameHelper {
         this.winning_users_count = 0;
     }
 
+    randomIntFromInterval(min, max) {
+      return Math.floor(Math.random() * (max - min + 1) + min);
+    }
+
     async getWakePercent(){
         let percent = await Option._get('wake_percent');
         return percent / 100;
@@ -32,6 +36,24 @@ class GameHelper {
     async getRawRakePercent(){
         let percent = await Option._get('raw_rake_percent');
         return percent / 100;
+    }
+
+    async getBonenosherStatus(){
+        let status = '';
+        const statusPercent = {
+            wake: await Option._get('wake_percent'),
+            sleep: await Option._get('sleep_percent')
+        }
+        const randPercent = this.randomIntFromInterval(1, 99); console.log(randPercent)
+        let start = 1;
+        for (const [key, value] of Object.entries(statusPercent)) {
+            const end = start + parseInt(value) - 1;
+            if(start <= randPercent && randPercent <= end){
+                status = key;
+            }
+            start += parseInt(value);
+        }
+        return status;
     }
 
     async getEffectiveRakePercent(){
@@ -66,7 +88,7 @@ class GameHelper {
     }
 
     async resetGame(){
-        Option._update('last_update_entry_calc', '{}');
+        //Option._update('last_update_entry_calc', '{}');
         UserMeta.update({meta_value: 0}, {where: {meta_key: 'non_nft_entries'}});
         UserMeta.update(
             {meta_value: '{"TotalSpent":0,"entry_total":0,"ticket_total":0,"ChanceOfWinning":0,"ChanceNotWin":0,"NoRakeEV":0,"PostRakeEV":0}'}, 
@@ -85,7 +107,7 @@ class GameHelper {
         const TODAY_START = moment().tz('UTC').startOf('day');
         const NOW = moment().tz('UTC');
 
-        const games = await GamePlay.findAll({where: {
+        const games = await GamePlaying.findAll({where: {
             created_at: { 
                 [Op.gt]: TODAY_START,
                 [Op.lt]: NOW
@@ -160,7 +182,8 @@ class GameHelper {
         }
 
         // Update this will use for single user calc [PostRake EV, NoRake EV]
-        Option._update('last_update_entry_calc', JSON.stringify(entry_calc));
+        // Option._update('last_update_entry_calc', JSON.stringify(entry_calc));
+        await Game.updateData(entry_calc);
 
         return entry_calc;
     }
@@ -189,7 +212,7 @@ class GameHelper {
          */
         let rakePrize = 0;
         let rakePrizeNextDay = 0;
-        let bonenosher_status = await Option._get('bonenosher_status') || 'sleep'; // wake | sleep
+        let bonenosher_status = await this.getBonenosherStatus();
         if(bonenosher_status === 'sleep'){
             rakePrize = entry_calc.NoRakePrizePool*80/100;
             rakePrizeNextDay = entry_calc.NoRakePrizePool*20/100;
@@ -239,17 +262,17 @@ class GameHelper {
             for(var i=0;i<user_count;i++){
                 var user_id = user_ids[Math.floor(Math.random()*user_ids.length)];
                 user_ids = user_ids.filter(function(id){ return id != user_id; });
-                // const transaction = await Transaction.create({
-                //     type: 'prize',
-                //     amount: prize.prize,
-                //     event: `prize_for_${key}`,
-                //     user_id: user_id,
-                //     description: '',
-                //     uid: uuidv4(),
-                //     game_id: null
-                // });
+                const transaction = await Transaction.create({
+                    type: 'prize',
+                    amount: prize.prize,
+                    event: `prize_for_${key}`,
+                    user_id: user_id,
+                    description: '',
+                    uid: uuidv4(),
+                    game_id: null
+                });
 
-                // await transaction.updatePrizeForUser();
+                await transaction.updatePrizeForUser();
             }
         }
 
