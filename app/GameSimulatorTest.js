@@ -7,6 +7,7 @@ const Game = require('./models/Game');
 const { Op } = require("sequelize");
 var moment = require('moment');
 var uniqid = require('locutus/php/misc/uniqid');
+const fn = require('./Functions');
 
 class GameSimulatorTest{
 	constructor() {
@@ -60,17 +61,13 @@ class GameSimulatorTest{
 				const user_id = parseInt(user.id);
 				const game_info = await user.getCalGameInfo();
 
-				//const TODAY_START = moment().tz('UTC').startOf('day');
-				//const NOW = moment().tz('UTC');
-				const START = moment().tz('UTC').subtract(1, 'd').format(self.format_date);
-				const END = moment().tz('UTC').format(self.format_date);
-
+				const {start_date, end_date} = fn.dateRange();
 				const game = await GamePlaying.findOne({where: {
 					user_id: user_id,
 					game_id: game_id,
 			      	created_at: { 
-			        	[Op.gt]: START,
-			        	[Op.lt]: END
+			        	[Op.gt]: start_date,
+			        	[Op.lt]: end_date
 			      	},
 			      	finished: 0
 			    }});

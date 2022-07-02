@@ -14,7 +14,7 @@ var Transaction = sequelize.define('Transaction', {
 	amount      	: Sequelize.FLOAT,
 	event           : Sequelize.STRING,
 	user_id 		: Sequelize.BIGINT,
-	game_id 		: Sequelize.BIGINT,
+	game_playing_id : Sequelize.BIGINT,
 	description   	: Sequelize.TEXT,
   	uid   			: Sequelize.STRING
 },{
@@ -30,7 +30,7 @@ Transaction.prototype.updatePrizeForUser = async function(){
 	const game_id = await user.getCurrentGameId();
 	if(game_id){
 		GamePlaying.update({finished: 1}, {where: {id: game_id}});
-		this.update({game_id: game_id});
+		this.update({game_playing_id: game_id});
 		this.save();
 	}
 }

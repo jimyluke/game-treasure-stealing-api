@@ -92,7 +92,7 @@ exports.enterGame = async (req, res) => {
 	let game_playing_id = await user.getCurrentGameId();
 	const game_info = await user.getCalGameInfo();
 	let json_data = game_info;
-console.log(game_playing_id);
+
 	if(!game_playing_id){
 		let game_playing = await GamePlaying.create({
 			user_id: user_id,

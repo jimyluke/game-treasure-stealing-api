@@ -3,6 +3,7 @@ var {Sequelize, sequelize} = require('../../config/sequelize.js');
 const { Op } = require("sequelize");
 const { Game, GamePlaying, Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
 const { Token } = require('../cq-models');
+const fn = require('../Functions');
 const _ = require('lodash');
 var moment = require('moment');
 
@@ -19,7 +20,7 @@ var User = sequelize.define('User', {
 	email_verified_at 	: Sequelize.DATE,
 	password   			: Sequelize.STRING,
 	active      	    : Sequelize.INTEGER,
-	sol_balance       	: Sequelize.FLOAT,
+	balance       		: Sequelize.FLOAT,
 	total_loot        	: Sequelize.FLOAT,
 	total_loot_won      : Sequelize.FLOAT,
 	loose_loost        	: Sequelize.FLOAT,
@@ -34,19 +35,15 @@ var User = sequelize.define('User', {
 });
 
 User.prototype.getCurrentGameId = async function(){
-	const TODAY_START = moment().tz('UTC').startOf('day');
-	const NOW = moment().tz('UTC');
-	//console.log(TODAY_START, NOW );
-
+	const {start_date, end_date} = fn.dateRange();
 	const game = await GamePlaying.findOne({where: {
 		user_id: parseInt(this.id),
       	created_at: { 
-        	[Op.gt]: TODAY_START,
-        	[Op.lt]: NOW
+        	[Op.gt]: start_date,
+        	[Op.lt]: end_date
       	},
       	finished: 0
     }});
-    console.log(game);
 
     return game !== null? parseInt(game.id): 0;
 }

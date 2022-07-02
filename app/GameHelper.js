@@ -9,6 +9,7 @@ const { Token, Character } = require('./cq-models');
 var moment = require('moment');
 const _ = require('lodash');
 const { v4: uuidv4 } = require('uuid');
+const fn = require('./Functions');
 
 class GameHelper {
 
@@ -38,6 +39,10 @@ class GameHelper {
         return percent / 100;
     }
 
+    /**
+     * Get Bonenosher Status
+     * @return {string} [wake | sleep]
+     */
     async getBonenosherStatus(){
         let status = '';
         const statusPercent = {
@@ -104,13 +109,11 @@ class GameHelper {
 	async PrepareCalculation(){
         let self = this;
 
-        const TODAY_START = moment().tz('UTC').startOf('day');
-        const NOW = moment().tz('UTC');
-
+        const {start_date, end_date} = fn.dateRange(); //console.log(start_date, end_date )
         const games = await GamePlaying.findAll({where: {
             created_at: { 
-                [Op.gt]: TODAY_START,
-                [Op.lt]: NOW
+                [Op.gt]: start_date,
+                [Op.lt]: end_date
             },
             finished: 0
         }});

@@ -2,9 +2,9 @@
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 const Op = Sequelize.Op;
 var GamePlaying = require('../Models/GamePlaying');
+const fn = require('../Functions');
 const _ = require('lodash');
 var moment = require('moment');
-
 
 var Game = sequelize.define('Game', {
 	id: {
@@ -28,20 +28,15 @@ var Game = sequelize.define('Game', {
 	underscored  	: true
 });
 
-const format_date = 'YYYY-MM-DD 17:00:00';
-
 Game.getTodayGame = async function(){
-	const START = moment().tz('UTC').subtract(1, 'd').format(format_date);
-	const END = moment().tz('UTC').format(format_date);
-	
+	const {start_date, end_date} = fn.dateRange();
 	const game = await Game.findOne({where: {
       	created_at: { 
-        	[Op.gt]: START,
-        	[Op.lt]: END
+        	[Op.gt]: start_date,
+        	[Op.lt]: end_date
       	},
       	end: 0
     }});
-
     return game;
 }
 
@@ -82,17 +77,14 @@ Game.setEndGame = async function(current_game_id){
 
 // Get back_pot yesterday
 Game.getBackPot = async function(){
-	const START = moment().tz('UTC').subtract(1, 'd').format(format_date);
-	const END = moment().tz('UTC').subtract(2, 'd').format(format_date);
-
+	const {start_data, end_date} = fn.lastDateRange();
 	const game = await Game.findOne({where: {
       	created_at: { 
-        	[Op.gt]: START,
-        	[Op.lt]: END
+        	[Op.gt]: start_data,
+        	[Op.lt]: end_date
       	},
       	end: 0
     }});
-
     return game !== null? parseFloat(game.back_pot): 0;
 }
 

@@ -9,6 +9,7 @@ const User = require('../models/User');
 const Game = require('../models/Game');
 const GameHelper = require('../GameHelper');
 const GameSimulatorTest = require('../GameSimulatorTest');
+const fn = require('../Functions');
 var moment = require('moment');
 const _ = require('lodash');
 
@@ -16,6 +17,9 @@ exports.dev = async (req, res) => {
 	//const user = await User.findByPk(1);
 	//const game_info = await user.getCalGameInfo();
 	//console.log(game_info);
+	//
+	//const dr = fn.lastDateRange();
+	//console.log(dr);
 	
 	const helper = new GameHelper();
 	let data = await helper.PrizeCalc();
@@ -34,12 +38,10 @@ exports.dev = async (req, res) => {
 
 exports.getGameInfo = async (req, res) => {
 	const now = moment().tz('UTC').format('YYYY-MM-DD HH:MM:SS');
-	let date = moment().tz('UTC').format('YYYY-MM-DD');
-	let wake_time = `${date} 17:00:00`;
+	let wake_time = moment().tz('UTC').format('YYYY-MM-DD 17:00:00');
 
 	if(wake_time < now){
-		date = moment().add(1,'d').tz('UTC').format('YYYY-MM-DD');
-		wake_time = `${date} 17:00:00`;
+		wake_time = moment().add(1,'d').tz('UTC').format('YYYY-MM-DD 17:00:00');
 	}
 
 	var duration = moment.duration(moment(wake_time).tz('UTC').diff(now));
