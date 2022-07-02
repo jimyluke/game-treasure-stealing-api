@@ -196,7 +196,7 @@ class GameHelper {
         // Update this will use for single user calc [PostRake EV, NoRake EV]
         // Option._update('last_update_entry_calc', JSON.stringify(entry_calc));
         Game.getQueuedThieves();
-        await Game.updateData(entry_calc);
+        await Game.updateData({data: entry_calc});
 
         return entry_calc;
     }
@@ -279,18 +279,19 @@ class GameHelper {
                 // After the user_id has been paid, remove that user_id from the reward array
                 user_ids = user_ids.filter(function(id){ return id != user_id; });
 
-                // Create transaction for prize
-                const transaction = await Transaction.create({
-                    type: 'prize',
-                    amount: prize.prize,
-                    event: `prize_for_${key}`,
-                    user_id: user_id,
-                    description: '',
-                    uid: uuidv4(),
-                    game_id: null
-                });
-
-                await transaction.updatePrizeForUser();
+                if(prize.prize > 0){
+                    // Create transaction for prize
+                    const transaction = await Transaction.create({
+                        type: 'prize',
+                        amount: prize.prize,
+                        event: `prize_for_${key}`,
+                        user_id: user_id,
+                        description: '',
+                        uid: uuidv4(),
+                        game_id: null
+                    });
+                    await transaction.updatePrizeForUser(prize.prize);
+                }
             }
         }
 

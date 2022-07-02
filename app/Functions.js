@@ -6,6 +6,10 @@ var moment = require('moment');
 const format_date = 'YYYY-MM-DD 17:00:00';
 const timezone = 'UTC';
 
+/**
+ * [dateRange description]
+ * @return {[type]} [description]
+ */
 module.exports.dateRange = function () { 
     const NOW = moment().tz(timezone).format('YYYY-MM-DD HH:MM:SS');
     let START = moment().tz(timezone).subtract(1, 'd').format(format_date);
@@ -17,9 +21,13 @@ module.exports.dateRange = function () {
     return {start_date: START, end_date: END}
 };
 
+/**
+ * [lastDateRange description]
+ * @return {[type]} [description]
+ */
 module.exports.lastDateRange = function () { 
-    const dateEndToday = moment().tz(timezone).format(format_date); console.log(dateEndToday)
-    const NOW = moment().tz(timezone).format('YYYY-MM-DD HH:MM:SS'); console.log(NOW)
+    const dateEndToday = moment().tz(timezone).format(format_date);
+    const NOW = moment().tz(timezone).format('YYYY-MM-DD HH:MM:SS');
     let START = moment().tz(timezone).subtract(2, 'd').format(format_date);
     let END = moment().tz(timezone).subtract(1, 'd').format(format_date);
     if(dateEndToday < NOW){

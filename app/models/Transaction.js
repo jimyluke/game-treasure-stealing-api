@@ -25,9 +25,12 @@ var Transaction = sequelize.define('Transaction', {
 	underscored  	: true
 });
 
-Transaction.prototype.updatePrizeForUser = async function(){
+Transaction.prototype.updatePrizeForUser = async function(prizeAmount){
 	const user = await User.findByPk(parseInt(this.user_id));
 	const game_id = await user.getCurrentGameId();
+
+	await user.updateBalance(prizeAmount);
+
 	if(game_id){
 		GamePlaying.update({finished: 1}, {where: {id: game_id}});
 		this.update({game_playing_id: game_id});

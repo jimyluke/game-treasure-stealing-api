@@ -22,16 +22,19 @@ exports.dev = async (req, res) => {
 	//console.log(dr);
 	
 	const helper = new GameHelper();
-	let data = await helper.PrizeCalc();
+	let data = await helper.PrizesDistribution();
 	console.log(data);
+	// req.app.io.of('gts.dashboard').emit('game_update', {
+	// 	data: data
+	// });
 	// 
 	// const day1 = moment().tz('UTC').subtract(1, 'd').format('YYYY-MM-DD 17:00:00');
 	// const day2 = moment().tz('UTC').subtract(2, 'd').format('YYYY-MM-DD 17:00:00');
 
 	//console.log(day1, day2);
 	
-	//const simulator = new GameSimulatorTest();
-	//await simulator.createGameForAllUser();
+	// const simulator = new GameSimulatorTest();
+	// await simulator.createGameForAllUser();
 	
 	res.render('dev', { title: '4Dev' });
 }
@@ -46,25 +49,24 @@ exports.getGameInfo = async (req, res) => {
 
 	var duration = moment.duration(moment(wake_time).tz('UTC').diff(now));
     const seconds = duration.asSeconds();
-    const bonenosher_status = await Option._get('bonenosher_status');
-    //let last_game = await Option._get('last_update_entry_calc');
-    let last_game = await Game.getData();
-    //last_game = JSON.parse(last_game);
+    let current_game = await Game.getTodayGame();
 
-    if(seconds < 0){
-
+    let data = {};
+    if(current_game !== null){
+    	data = current_game.data;
+    }else{
+    	current_game = await Game.create({data: {}, end: 0, thieves_count: 0});
     }
 
 	const game_info = {
 		time_now: now,
 		wake_time: wake_time,
 		seconds: seconds,
-		bonenosher_status: bonenosher_status,
 		bonenosher_bounty: {
-			total: last_game.NoRakePrizePool,
+			total: data.NoRakePrizePool || 0,
 			loose: 0
 		},
-		queued_thieves: 0,
+		queued_thieves: current_game.thieves_count || 0,
 		active_thieves: 0,
 		thieves_guide_standing: {
 			active: 0,

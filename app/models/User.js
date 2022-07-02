@@ -183,4 +183,11 @@ User.prototype.getHeroes = async function(){
 	return {heroes_mint: heroes_mint, heroes_data: heroes_arr};
 }
 
+User.prototype.updateBalance = async function(amount){
+	let balance = parseFloat(this.balance) || 0;
+	balance += parseFloat(amount);
+	this.update({balance: balance});
+	this.save();
+}
+
 module.exports = User;
