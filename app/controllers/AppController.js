@@ -18,11 +18,16 @@ exports.dev = async (req, res) => {
 	//console.log(game_info);
 	
 	const helper = new GameHelper();
-	let data = await helper.getBonenosherStatus();
+	let data = await helper.PrizeCalc();
 	console.log(data);
+	// 
+	// const day1 = moment().tz('UTC').subtract(1, 'd').format('YYYY-MM-DD 17:00:00');
+	// const day2 = moment().tz('UTC').subtract(2, 'd').format('YYYY-MM-DD 17:00:00');
+
+	//console.log(day1, day2);
 	
-	// const simulator = new GameSimulatorTest();
-	// await simulator.createGameForAllUser();
+	//const simulator = new GameSimulatorTest();
+	//await simulator.createGameForAllUser();
 	
 	res.render('dev', { title: '4Dev' });
 }

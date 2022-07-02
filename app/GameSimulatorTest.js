@@ -3,6 +3,7 @@
  */
 const { GamePlaying, Hero, UserMeta } = require('./models');
 const User = require('./models/User');
+const Game = require('./models/Game');
 const { Op } = require("sequelize");
 var moment = require('moment');
 var uniqid = require('locutus/php/misc/uniqid');
@@ -10,6 +11,7 @@ var uniqid = require('locutus/php/misc/uniqid');
 class GameSimulatorTest{
 	constructor() {
 		// constructor
+		this.format_date = 'YYYY-MM-DD 17:00:00';
 	}
 
 	ranSTR(length) {
@@ -49,21 +51,26 @@ class GameSimulatorTest{
 	}
 
 	async createGameForAllUser(){
+		const self = this;
 		console.log('Start')
 		const users = await User.findAll();
 		if(users){
+			const game_id = await Game.getCurrentId();
 			users.forEach( async user => {
 				const user_id = parseInt(user.id);
 				const game_info = await user.getCalGameInfo();
 
-				const TODAY_START = moment().tz('UTC').startOf('day');
-				const NOW = moment().tz('UTC');
+				//const TODAY_START = moment().tz('UTC').startOf('day');
+				//const NOW = moment().tz('UTC');
+				const START = moment().tz('UTC').subtract(1, 'd').format(self.format_date);
+				const END = moment().tz('UTC').format(self.format_date);
 
 				const game = await GamePlaying.findOne({where: {
 					user_id: user_id,
+					game_id: game_id,
 			      	created_at: { 
-			        	[Op.gt]: TODAY_START,
-			        	[Op.lt]: NOW
+			        	[Op.gt]: START,
+			        	[Op.lt]: END
 			      	},
 			      	finished: 0
 			    }});
@@ -72,6 +79,7 @@ class GameSimulatorTest{
 			    if(!game){
 					await GamePlaying.create({
 						user_id: user_id,
+						game_id: game_id,
 						data: json_data,
 						won: 0,
 						bonus: 0,

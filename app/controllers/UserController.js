@@ -85,14 +85,14 @@ exports.enterGame = async (req, res) => {
 	let game_id = await Game.getCurrentId();
 	// Check game today is created
 	if(!game_id){
-		const game = Game.create({data: {}, end: 0});
+		const game = await Game.create({data: {}, end: 0});
 		game_id = parseInt(game.id);
 	}
 
 	let game_playing_id = await user.getCurrentGameId();
 	const game_info = await user.getCalGameInfo();
 	let json_data = game_info;
-
+console.log(game_playing_id);
 	if(!game_playing_id){
 		let game_playing = await GamePlaying.create({
 			user_id: user_id,

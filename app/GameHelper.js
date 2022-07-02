@@ -44,7 +44,7 @@ class GameHelper {
             wake: await Option._get('wake_percent'),
             sleep: await Option._get('sleep_percent')
         }
-        const randPercent = this.randomIntFromInterval(1, 99); console.log(randPercent)
+        const randPercent = this.randomIntFromInterval(1, 99);
         let start = 1;
         for (const [key, value] of Object.entries(statusPercent)) {
             const end = start + parseInt(value) - 1;
@@ -141,6 +141,7 @@ class GameHelper {
 
         const tokens = await Token.findAll({where: {token_address: tokens_address}});
         let entry_calc = {};
+        const EffectiveRake = await this.getEffectiveRakePercent();
         if(tokens && tokens.length > 0){
             let entry_total = 0;
             let ticket_total = 0;
@@ -170,7 +171,6 @@ class GameHelper {
             });
 
             // Set data to property of object
-            const EffectiveRake = await this.getEffectiveRakePercent();
             const PostRakePrizePool = (1-EffectiveRake)*TotalSpent;
             entry_calc.NoRakePrizePool = TotalSpent + TotalSpent_nne;
             entry_calc.PostRakePrizePool = PostRakePrizePool;
@@ -179,10 +179,20 @@ class GameHelper {
             entry_calc.user_total = total_user;
             entry_calc.EstUsers = Math.round(entry_total/total_user);
             entry_calc.EstRakePerDay = TotalSpent - PostRakePrizePool;
+        }else{
+            const PostRakePrizePool = (1-EffectiveRake)*TotalSpent_nne;
+            entry_calc.NoRakePrizePool = TotalSpent_nne;
+            entry_calc.PostRakePrizePool = PostRakePrizePool;
+            entry_calc.entry_total = entry_total_nne;
+            entry_calc.ticket_total = ticket_total_nne;
+            entry_calc.user_total = total_user;
+            entry_calc.EstUsers = Math.round(entry_total_nne/total_user);
+            entry_calc.EstRakePerDay = TotalSpent_nne - PostRakePrizePool;
         }
 
         // Update this will use for single user calc [PostRake EV, NoRake EV]
         // Option._update('last_update_entry_calc', JSON.stringify(entry_calc));
+        Game.getQueuedThieves();
         await Game.updateData(entry_calc);
 
         return entry_calc;
@@ -210,28 +220,29 @@ class GameHelper {
          On sleep 80% pot goes to users by raffle (25% of unique wallets) 20% rolls over to next day. Entries reset.
          On wake 66% of pot rolls over to next day. 33% raked. Entries roll over too.
          */
-        let rakePrize = 0;
+        let paidOut = 0;
+        let raked = 0;
         let rakePrizeNextDay = 0;
         let bonenosher_status = await this.getBonenosherStatus();
         if(bonenosher_status === 'sleep'){
-            rakePrize = entry_calc.NoRakePrizePool*80/100;
+            paidOut = entry_calc.NoRakePrizePool*80/100;
             rakePrizeNextDay = entry_calc.NoRakePrizePool*20/100;
         }else{
-            rakePrize = entry_calc.NoRakePrizePool*33/100;
+            paidOut = 0;
+            raked = entry_calc.NoRakePrizePool*33/100; // Game fee CQ
             rakePrizeNextDay = entry_calc.NoRakePrizePool*66/100;
         }
 
         // Get rake price last day
-        const rakePriceLastDay = await Option._get('rake_prize_next_day') || 0;
-        rakePrize = rakePrize + parseFloat(rakePriceLastDay);
+        const backPot = await Game.getBackPot() || 0; // Get from yesterday game
+        paidOut = paidOut + parseFloat(backPot);
 
         // Store in database
-        Option._update('rake_prize_next_day', rakePrizeNextDay);
-        //console.log(' Rake prize: ', rakePrize, rakePrizeNextDay);
+        await Game.updateData({result: bonenosher_status, back_pot: rakePrizeNextDay, raked: raked});
 
         for(var i=0; i<max_prize; i++){
             let no_of_winning_wallets = i === 0? percent_of_winning_users[i]/100*winning_users: Math.round(percent_of_winning_users[i]/100*winning_users);
-            let bounty = percent_of_bounty[i]/100*rakePrize;
+            let bounty = percent_of_bounty[i]/100*paidOut;
             let prize = 0;
             if(no_of_winning_wallets !== 0){
                 prize = i === 0? bounty: bounty/no_of_winning_wallets;
@@ -260,8 +271,12 @@ class GameHelper {
         for (const [key, prize] of Object.entries(prize_data)) {
             const user_count = Math.round(prize.number_of_winning_wallets);
             for(var i=0;i<user_count;i++){
+                // Get an user from unique user ids
                 var user_id = user_ids[Math.floor(Math.random()*user_ids.length)];
+                // After the user_id has been paid, remove that user_id from the reward array
                 user_ids = user_ids.filter(function(id){ return id != user_id; });
+
+                // Create transaction for prize
                 const transaction = await Transaction.create({
                     type: 'prize',
                     amount: prize.prize,
