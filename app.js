@@ -32,8 +32,10 @@ app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+const AdminApiRouter = require('./routes/admin-api');
 const ApiRouter = require('./routes/api');
 const WebRouter = require('./routes/web');
+AdminApiRouter.config(app);
 WebRouter.config(app);
 ApiRouter.config(app);
 
