@@ -14,8 +14,8 @@ exports.authenticateToken = (req, res, next) => {
     	id: parseInt(user.id),
     	username: user.username,
       email: user.email,
-      avatar_url: user.avatar_url,
-      display_name: user.display_name
+      avatar: user.avatar_url,
+      display_name: user.display_name || ''
     }
     next() // pass the execution off to whatever request the client intended
   })

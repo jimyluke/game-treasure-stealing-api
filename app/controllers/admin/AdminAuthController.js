@@ -1,11 +1,11 @@
 const User = require('../../models/Admin');
-const { RefreshToken } = require('../models');
+const RefreshToken = require('../../models/RefreshToken');
 
 //var qs = require('qs');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 var gravatar = require('gravatar');
-const Tools = require('../Tools');
+const Tools = require('../../Tools');
 const { v4: uuidv4 } = require('uuid');
 var moment = require('moment'); // require
 
@@ -28,19 +28,18 @@ exports.connect_wallet = async (req, res) => {
  * @return {[type]}     [description]
  */
 exports.login = async (req, res) => {
-	let email = req.body.email
+	let username = req.body.username
 	let password = req.body.password
 	let success = true
 	let token = null
 	let refresh_token = null
 	let message = ''
 
-	let user = await User.findOne({where: {email: email}}).then( res => {
+	let user = await User.findOne({where: {username: username}}).then( res => {
 		return res !== null? res.dataValues: null
 	}).catch( () => {
 		return null
 	})
-	//console.log(user)
 
 	if(user !== null){
 		let hash = user.password;

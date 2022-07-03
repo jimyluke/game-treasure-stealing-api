@@ -1,4 +1,4 @@
-const AdminAuthController = require('../app/controllers/AuthController');
+const AdminAuthController = require('../app/controllers/admin/AdminAuthController');
 const {authenticateToken} = require('../app/middlewares/admin-auth.middleware');
 
 exports.config = function(app, _prefix){
