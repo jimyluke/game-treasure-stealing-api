@@ -1,1 +1,0 @@
-(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d21acec"],{bca6:function(n,e,t){"use strict";t.r(e);var a=function(){var n=this,e=n.$createElement,t=n._self._c||e;return t("div",{staticClass:"app-container"},[n._v(" Game Settings ")])},c=[],s=t("2877"),i={},l=Object(s["a"])(i,a,c,!1,null,null,null);e["default"]=l.exports}}]);
