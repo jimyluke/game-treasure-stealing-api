@@ -1,7 +1,7 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 const Op = Sequelize.Op;
-var GamePlaying = require('../Models/GamePlaying');
+var GamePlaying = require('../models/GamePlaying');
 const fn = require('../Functions');
 const _ = require('lodash');
 var moment = require('moment');

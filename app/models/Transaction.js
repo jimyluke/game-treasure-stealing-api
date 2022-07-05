@@ -1,7 +1,7 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
-var User = require('../Models/User');
-var GamePlaying = require('../Models/GamePlaying');
+var User = require('../models/User');
+var GamePlaying = require('../models/GamePlaying');
 
 var Transaction = sequelize.define('Transaction', {
 	id: {
