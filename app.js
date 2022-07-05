@@ -3,10 +3,12 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
 
 var app = express();
 var cron = require('node-cron');
+
+var GameHelper = require('./app/GameHelper');
 
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -45,8 +47,10 @@ cron.schedule('* * * * *', () => {
   //app.io.of('gts.dashboard').emit('game_update', { msg: 'running a task every minute' });
 });
 
-cron.schedule('0 17 * * *', () => {
+cron.schedule('0 17 * * *', async () => {
   app.io.of('gts.dashboard').emit('game_update', { msg: 'Running a job at 17:00 at UTC timezone' });
+  const game_helper = new GameHelper();
+  await game_helper.PrizesDistribution();
 }, {
   scheduled: true,
   timezone: "UTC"

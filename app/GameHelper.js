@@ -3,7 +3,13 @@
  */
 var {Sequelize, sequelize, cq_sequelize} = require('../config/sequelize.js');
 const Op = Sequelize.Op;
-const { Option, Game, GamePlaying, Hero, QuantityLookup, HeroTierTicket, UserMeta } = require('./models');
+const Option = require('./models/Option');
+const Game = require('./models/Game');
+const GamePlaying = require('./models/GamePlaying');
+const Hero = require('./models/Hero');
+const QuantityLookup = require('./models/QuantityLookup');
+const HeroTierTicket = require('./models/HeroTierTicket');
+const UserMeta = require('./models/UserMeta');
 const Transaction = require('./models/Transaction');
 const { Token, Character } = require('./cq-models');
 var moment = require('moment');
@@ -37,6 +43,10 @@ class GameHelper {
     async getRawRakePercent(){
         let percent = await Option._get('raw_rake_percent');
         return percent / 100;
+    }
+
+    async initNewGame(){
+        return await Game.create({data: {}, end: 0});
     }
 
     /**
