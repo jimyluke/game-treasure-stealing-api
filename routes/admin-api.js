@@ -20,4 +20,7 @@ exports.config = function(app, _prefix){
 
 	// Game
 	app.get(`${_prefix}/game/history-list`, [authenticateToken, AdminGameController.loadGameHistory]);
+	app.get(`${_prefix}/game-info/:game_id`, [authenticateToken, AdminGameController.loadGameInfo]);
+	app.post(`${_prefix}/game/create-game-for-all-user`, [authenticateToken, AdminGameController.createGameForAllUser]);
+	app.post(`${_prefix}/game/check`, [authenticateToken, AdminGameController.gameCheck]);
 }

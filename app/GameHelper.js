@@ -305,6 +305,8 @@ class GameHelper {
             }
         }
 
+        await Game.setEndGame();
+
         return true;
     }
 }
