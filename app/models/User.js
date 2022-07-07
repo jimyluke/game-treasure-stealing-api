@@ -34,17 +34,26 @@ var User = sequelize.define('User', {
 	underscored  	: true
 });
 
-User.prototype.getCurrentGameId = async function(){
+User.prototype.getCurrentGame = async function(){
 	const {start_date, end_date} = fn.dateRange();
-	const game = await GamePlaying.findOne({where: {
+	let game = await GamePlaying.findOne({where: {
 		user_id: parseInt(this.id),
       	created_at: { 
         	[Op.gt]: start_date,
         	[Op.lt]: end_date
       	},
       	finished: 0
-    }});
+    }, order: [['id', 'DESC']]});
 
+    // if(game === null){
+    // 	game = await GamePlaying.create({user_id: parseInt(this.id), data: {}, heroes: '[]', finished: 0, non_nft_entries: 0});
+    // }
+
+    return game;
+}
+
+User.prototype.getCurrentGameId = async function(){
+	const game = await this.getCurrentGame();
     return game !== null? parseInt(game.id): 0;
 }
 
@@ -61,7 +70,7 @@ User.prototype.getCalGameInfo = async function() {
 
 	// get Non-NFT
 	let non_nft_entries = 0;
-	let user_nne = await UserMeta._get(user_id, 'non_nft_entries', true);
+	let user_nne = await this.getNonNftEntries();
 	if(user_nne){
 		non_nft_entries = parseInt(user_nne);
 	}
@@ -144,21 +153,23 @@ User.prototype.getCalGameInfo = async function() {
 	entry_cal.NoRakeEV = NoRakeEV;
 	entry_cal.PostRakeEV = PostRakeEV;
 	//console.log(entry_cal);
-	UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(entry_cal));
+	//UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(entry_cal));
+	const currentGame = await this.getCurrentGame();
+	currentGame.update({data: entry_cal});
+	currentGame.save();
 
 	return entry_cal;
 }
 
 User.prototype.getNonNftEntries = async function() {
-	const non_nft_entries = await UserMeta._get(parseInt(this.id), 'non_nft_entries', true);
-	return parseInt(non_nft_entries);
+	const game = await this.getCurrentGame();
+    return game !== null? parseInt(game.non_nft_entries): 0;
 }
 
 User.prototype.getCurrentEntriesCalc = async function() {
-	let current_entries_calc = await UserMeta._get(parseInt(this.id), 'current_entries_calc', true);
-	if(current_entries_calc){
-		current_entries_calc = JSON.parse(current_entries_calc);
-	}else{
+	const currentGame = await this.getCurrentGame();
+	let current_entries_calc = currentGame !== null? currentGame.data: {};
+	if(_.isEmpty(current_entries_calc)){
 		current_entries_calc = JSON.parse('{"TotalSpent":0,"entry_total":0,"ticket_total":0,"ChanceOfWinning":0,"ChanceNotWin":0,"NoRakeEV":0,"PostRakeEV":0}');
 	}
 	return current_entries_calc;

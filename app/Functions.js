@@ -19,7 +19,7 @@ module.exports.dateRange = function () {
         START = END;
         END = moment().tz(timezone).add(1, 'd').format(format_date);
     }
-    return {start_date: START, end_date: END}
+    return {start_date: moment(START), end_date: moment(END)};
 };
 
 /**
@@ -35,7 +35,7 @@ module.exports.lastDateRange = function () {
         START = moment().tz(timezone).subtract(1, 'd').format(format_date);
         END = dateEndToday;
     }
-    return {start_date: START, end_date: END}
+    return {start_date: moment(START), end_date: moment(END)};
 };
 
 /**

@@ -22,7 +22,7 @@ exports.dev = async (req, res) => {
 	//console.log(dr);
 	
 	const helper = new GameHelper();
-	let data = await helper.PrizesDistribution();
+	let data = await helper.PrizeCalc();
 	console.log(data);
 	// req.app.io.of('gts.dashboard').emit('game_update', {
 	// 	data: data

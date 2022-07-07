@@ -148,11 +148,14 @@ exports.info = async (req, res) => {
 	const {heroes_mint, heroes_data} = await user.getHeroes();
 	const non_nft_entries = await user.getNonNftEntries();
 	const current_entries_calc = await user.getCurrentEntriesCalc();
+	const currentGame = await user.getCurrentGame();
 
 	res.json({
 		success: true,
-		message: 'Load user info success',
+		message: 'Data loaded',
 		data: {
+			game_playing_id: parseInt(currentGame.id) || 0,
+			game_id: parseInt(currentGame.game_id) || 0,
 			user: req.user,
 			heroes: heroes_mint,
 			heroes_data: heroes_data,
