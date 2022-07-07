@@ -58,13 +58,15 @@ exports.getGameInfo = async (req, res) => {
     	current_game = await Game.create({data: {}, end: 0, thieves_count: 0});
     }
 
+    const {main_pot, bonus} = await Game.getPot();
+
 	const game_info = {
 		time_now: now,
 		wake_time: wake_time,
 		seconds: seconds,
 		bonenosher_bounty: {
-			total: data.NoRakePrizePool || 0,
-			loose: 0
+			total: main_pot,
+			loose: bonus
 		},
 		queued_thieves: current_game.thieves_count || 0,
 		active_thieves: 0,
