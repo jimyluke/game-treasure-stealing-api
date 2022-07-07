@@ -1,6 +1,7 @@
 /**
  * Helper functions 
  */
+var {Sequelize, sequelize, cq_sequelize} = require('../config/sequelize.js');
 const _ = require('lodash');
 var moment = require('moment');
 const format_date = 'YYYY-MM-DD 17:00:00';
@@ -36,3 +37,30 @@ module.exports.lastDateRange = function () {
     }
     return {start_date: START, end_date: END}
 };
+
+/**
+ * [lastDateRange description]
+ * @return {[type]} [description]
+ */
+module.exports.getExtraTicketsByToken = async function(token_address){
+    const query = `SELECT T.token_address, C.* FROM characters as C, tokens as T WHERE C.nft_id = T.id AND T.token_address = '${token_address}'`;
+    const CharacterInfo = await cq_sequelize.query(query, { type: cq_sequelize.QueryTypes.SELECT});
+    let stats = {
+        DexWisExtraTix: 0,
+        ConStrExtraTix: 0,
+        IntChaExtraTix: 0
+    };
+    if(CharacterInfo){
+        const info = CharacterInfo[0];
+        stats.DexWisExtraTix = Math.round(((info.dexterity+info.wisdom-20)/24)*10);
+        stats.ConStrExtraTix = Math.round(((info.constitution+info.strength-20)/24)*7);
+        stats.IntChaExtraTix = Math.round(((info.intelligence+info.charisma-20)/24)*3);
+    }
+
+    let point = 0;
+    for (const [key, value] of Object.entries(stats)) {
+        point += value;
+    }
+    console.log(point);
+    return point;
+}

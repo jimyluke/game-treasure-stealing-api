@@ -77,39 +77,43 @@ User.prototype.getCalGameInfo = async function() {
 		return look !== null? look.value: 0;
 	}
 
-	if(tokens && tokens.length > 0){
-		let tokens_data = [];
-		await Promise.all(tokens.map(async (token) => {
-			let token_tmp = token;
-			const token_info = await token.getExtraInfo();
-			let entry_legacy = token_info.legacy;
-			entry_total += parseInt(entry_legacy);
-			token_tmp.token_info = token_info;
-			tokens_data.push(token_tmp);
-		}));
-
-		entry_total += non_nft_entries; // addition Non-NFT amount
-		price_per_entry = await getPricePerEntry(entry_total);
-
-		// Get hero tier ticket data
-		const hero_tier_data = await HeroTierTicket.findAll();
-		tokens_data.forEach( token => {
-			var var_of_hero_tier = _.chain(hero_tier_data).filter(function (h) { return h.tier === token.hero_tier }).first().value();
-			const token_info = token.token_info;
-			const legacy = token_info.legacy;
-			let spent_per_hero = price_per_entry*legacy;
-			let ticket_per_hero = legacy*var_of_hero_tier.tickets;
-			TotalSpent += spent_per_hero;
-			ticket_total += ticket_per_hero;
-		});
-	}
-
 	if(non_nft_entries > 0){
 		price_per_entry = await getPricePerEntry(non_nft_entries);
 		const hero_tier_nne = await HeroTierTicket.findOne({where: {tier: 'Non-NFT'}});
 		ticket_total += non_nft_entries * parseInt(hero_tier_nne.tickets);
 		entry_total += non_nft_entries;
 		TotalSpent += price_per_entry*non_nft_entries;
+	}
+
+	if(tokens && tokens.length > 0){
+		let tokens_data = [];
+		await Promise.all(tokens.map(async (token) => {
+			let token_tmp = token;
+			const token_info = await token.getExtraInfo();
+			let entry_legacy = token_info.legacy;
+			//entry_total += parseInt(entry_legacy);
+			entry_total++;
+			token_tmp.token_info = token_info;
+			tokens_data.push(token_tmp);
+		}));
+
+		//entry_total += non_nft_entries; // addition Non-NFT amount
+		price_per_entry = await getPricePerEntry(entry_total);
+
+		// Get hero tier ticket data
+		// Total Tickets per Entry = Base Tickets + Extra Tickets from Hero Stats
+		const hero_tier_data = await HeroTierTicket.findAll();
+		tokens_data.forEach( async token => {
+			var var_of_hero_tier = _.chain(hero_tier_data).filter(function (h) { return h.tier === token.hero_tier }).first().value();
+			const token_info = token.token_info;
+			const legacy = token_info.legacy;
+			let spent_per_hero = price_per_entry;
+			let ticket_per_hero = var_of_hero_tier.tickets; // Base Tickets
+			const extraTickets = var_of_hero_tier.tix_from_stats;
+			TotalSpent += spent_per_hero;
+			ticket_total += ticket_per_hero;
+			ticket_total += extraTickets;
+		});
 	}
 
 	//let game_calc = await Option._get('last_update_entry_calc');
