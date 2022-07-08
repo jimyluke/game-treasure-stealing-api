@@ -22,7 +22,7 @@ exports.updateHeroStatus = async (req, res) => {
 	const user_id = parseInt(req.user.id);
 	const user = await User.findByPk(user_id);
 	const hero = await Hero.findOne({ where: {mint: hero_mint, user_id: user_id} });
-	const currentGame = await user.getCurrentGame();
+	let currentGame = await user.getCurrentGame();
 
 	if(currentGame === null){
 		currentGame = await GamePlaying.create({user_id: user_id, data: {}, heroes: '[]', finished: 0, non_nft_entries: 0}).then( data => {
