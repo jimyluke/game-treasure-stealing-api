@@ -149,13 +149,18 @@ exports.info = async (req, res) => {
 	const non_nft_entries = await user.getNonNftEntries();
 	const current_entries_calc = await user.getCurrentEntriesCalc();
 	const currentGame = await user.getCurrentGame();
+	let game_playing_id = 0, game_id = 0;
+	if(currentGame !== null){
+		game_playing_id = currentGame.id;
+		game_id = currentGame.game_id;
+	}
 
 	res.json({
 		success: true,
 		message: 'Data loaded',
 		data: {
-			game_playing_id: parseInt(currentGame.id) || 0,
-			game_id: parseInt(currentGame.game_id) || 0,
+			game_playing_id: game_playing_id,
+			game_id: game_id,
 			user: req.user,
 			heroes: heroes_mint,
 			heroes_data: heroes_data,
