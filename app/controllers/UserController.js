@@ -25,13 +25,17 @@ exports.updateHeroStatus = async (req, res) => {
 	const currentGame = await user.getCurrentGame();
 
 	if(currentGame === null){
-		currentGame = await GamePlaying.create({user_id: user_id, data: {}, heroes: '[]', finished: 0, non_nft_entries: 0});
+		currentGame = await GamePlaying.create({user_id: user_id, data: {}, heroes: '[]', finished: 0, non_nft_entries: 0}).then( data => {
+			return data;
+		}).catch( error => {
+			console.log(error);
+		});
 	}
 
-	let heroes_arr = currentGame.heroes || '[]';
+	let heroes_arr = currentGame !== null && typeof currentGame.heroes === 'string'? currentGame.heroes: '[]';
 	heroes_arr = JSON.parse(heroes_arr);
 
-	if(hero){
+	if(hero && currentGame !== null){
 		let status = hero.active;
 		if(status === null || status === ''){
 			status = 1;
