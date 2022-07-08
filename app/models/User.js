@@ -155,9 +155,11 @@ User.prototype.getCalGameInfo = async function() {
 	//console.log(entry_cal);
 	//UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(entry_cal));
 	const currentGame = await this.getCurrentGame();
-	currentGame.update({data: entry_cal});
-	currentGame.save();
-
+	if(currentGame !== null){
+		currentGame.update({data: entry_cal});
+		currentGame.save();
+	}
+	
 	return entry_cal;
 }
 
