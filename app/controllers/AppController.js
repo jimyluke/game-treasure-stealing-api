@@ -12,6 +12,7 @@ const GameSimulatorTest = require('../GameSimulatorTest');
 const fn = require('../Functions');
 var moment = require('moment');
 const _ = require('lodash');
+const { SolanaWallet, Solana } = require('../solana');
 
 exports.dev = async (req, res) => {
 	//const user = await User.findByPk(1);
@@ -21,9 +22,9 @@ exports.dev = async (req, res) => {
 	//const dr = fn.lastDateRange();
 	//console.log(dr);
 	
-	const helper = new GameHelper();
-	let data = await helper.PrizeCalc();
-	console.log(data);
+	// const helper = new GameHelper();
+	// let data = await helper.PrizeCalc();
+	// console.log(data);
 	// req.app.io.of('gts.dashboard').emit('game_update', {
 	// 	data: data
 	// });
@@ -35,6 +36,12 @@ exports.dev = async (req, res) => {
 	
 	// const simulator = new GameSimulatorTest();
 	// await simulator.createGameForAllUser();
+	// 
+	const SW = new SolanaWallet();
+	const info = await SW.getWalletInfo('wage auto fluid sketch solar news pear profit soon ladder drama various');
+	console.log(info);
+	const Sol = new Solana();
+	const test = await Sol.getRate(); console.log(test);
 	
 	res.render('dev', { title: '4Dev' });
 }

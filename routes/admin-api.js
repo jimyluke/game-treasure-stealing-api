@@ -1,6 +1,7 @@
 const AdminAuthController = require('../app/controllers/admin/AdminAuthController');
 const AdminGameController = require('../app/controllers/admin/AdminGameController');
 const SettingsController = require('../app/controllers/admin/SettingsController');
+const SolanaController = require('../app/controllers/admin/SolanaController');
 const {authenticateToken} = require('../app/middlewares/admin-auth.middleware');
 
 exports.config = function(app, _prefix){
@@ -17,6 +18,12 @@ exports.config = function(app, _prefix){
 	// Settings
 	app.get(`${_prefix}/load-settings`, [authenticateToken, SettingsController.loadSettings]);
 	app.post(`${_prefix}/update-settings`, [authenticateToken, SettingsController.updateSettings]);
+
+	// Solana
+	app.get(`${_prefix}/solana/load-wallets`, [authenticateToken, SolanaController.loadWallets]);
+	app.post(`${_prefix}/solana/generate-wallet`, [authenticateToken, SolanaController.generateWallet]);
+	app.post(`${_prefix}/solana/set-primary-wallet`, [authenticateToken, SolanaController.setPrimaryWallet]);
+	app.post(`${_prefix}/solana/update-settings`, [authenticateToken, SolanaController.updateSettings]);
 
 	// Game
 	app.get(`${_prefix}/game/history-list`, [authenticateToken, AdminGameController.loadGameHistory]);

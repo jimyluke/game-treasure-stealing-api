@@ -9,6 +9,7 @@ var app = express();
 var cron = require('node-cron');
 
 var GameHelper = require('./app/GameHelper');
+var { Solana } = require('./app/solana');
 
 app.use(function (req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -45,6 +46,11 @@ ApiRouter.config(app);
 // For Cronjob
 cron.schedule('* * * * *', () => {
   //app.io.of('gts.dashboard').emit('game_update', { msg: 'running a task every minute' });
+});
+
+cron.schedule('0 7,19 * * *', async () => {
+  const Sol = new Solana();
+  const test = await Sol.updateSolRate();
 });
 
 cron.schedule('0 17 * * *', async () => {
