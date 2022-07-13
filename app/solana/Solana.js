@@ -18,12 +18,28 @@ class Solana {
 		this.sol_usd_rate = 33.91;
 	}
 
-	getConnection() {
+	async getSettings(){
+		const rate = await Option._get('sol_usd_rate');
+		let settings = await Option._get('solana_settings') || {};
+		const default_settings = {
+			node_type: 'testnet',
+	        sol_usd_rate: rate,
+	        auto_update_rate: true
+		}
+		return Object.assign({}, default_settings, settings);
+	}
+
+	async getConnection() {
+		const settings = await this.getSettings();
+		let node_type = settings.node_type || nodeType;
+
 	    if (!this.connection) {
-	        this.connection = new web3.Connection(
-	            web3.clusterApiUrl(nodeType),
-	            commitment,
-	        );
+	        try{
+	        	this.connection = new web3.Connection(
+		            web3.clusterApiUrl(node_type),
+		            commitment,
+		        );
+	        }catch(error){}
 	    }
 	    return this.connection;
 	}
@@ -47,9 +63,19 @@ class Solana {
 	}
 
 	async getRate(){
+		const settings = await this.getSettings();
+		if(!settings.auto_update_rate){
+			return parseFloat(settings.sol_usd_rate);
+		}
 		return parseFloat(await Option._get('sol_usd_rate')) || this.sol_usd_rate;
 	}
 
+	/**
+	 * Convert dollar to solana
+	 * @param  float amount In dollar
+	 * @param  string type   [from-to]
+	 * @return float        Solana Coin
+	 */
 	async convert(amount, type){
 		let rate = await this.getRate(type);
 		return 1/rate*amount;
@@ -60,8 +86,10 @@ class Solana {
 		return await Option._update('sol_usd_rate', rate);
 	}
 
-	async showSolBalance(accountAddr) {
-	    let connection = this.getConnection();
+	async getSolBalance(accountAddr) {
+	    let connection = await this.getConnection();
+	    if(!connection)
+	    	return parseFloat('0').toFixed(6);
 	    let account = new web3.PublicKey(accountAddr);
 	    let accountBalance = await connection.getBalance(account);
 	    let balance = (accountBalance/10**SOLANA_DECIMAL).toFixed(6);
@@ -69,7 +97,7 @@ class Solana {
 	}
 
 	async requestAirdrop(address) {
-	    let connection = this.getConnection();
+	    let connection = await this.getConnection();
 	    let account = new web3.PublicKey(address);
 
 	    // Airdrop some SOL to the sender's wallet, so that it can handle the txn fee
@@ -85,7 +113,7 @@ class Solana {
 
 	// Transfer solana between accounts
 	async transferSOL(fromPrivateKey, toAddress, amount) {
-	    let connection = getConnection();
+	    let connection = await this.getConnection();
 	    let fromAccount = web3.Keypair.fromSeed(new Uint8Array(Buffer.from(fromPrivateKey, "hex")));
 	    let toAccount = new web3.PublicKey(toAddress);
 	    let lamports = (amount*web3.LAMPORTS_PER_SOL).toFixed(0);

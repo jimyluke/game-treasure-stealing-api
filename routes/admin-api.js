@@ -21,9 +21,12 @@ exports.config = function(app, _prefix){
 
 	// Solana
 	app.get(`${_prefix}/solana/load-wallets`, [authenticateToken, SolanaController.loadWallets]);
+	app.get(`${_prefix}/solana/get-balance-wallets`, [authenticateToken, SolanaController.getBalanceWallets]);
 	app.post(`${_prefix}/solana/generate-wallet`, [authenticateToken, SolanaController.generateWallet]);
 	app.post(`${_prefix}/solana/set-primary-wallet`, [authenticateToken, SolanaController.setPrimaryWallet]);
 	app.post(`${_prefix}/solana/update-settings`, [authenticateToken, SolanaController.updateSettings]);
+	app.post(`${_prefix}/solana/check-wallet-info`, [authenticateToken, SolanaController.checkWalletInfo]);
+	app.post(`${_prefix}/solana/add-wallet`, [authenticateToken, SolanaController.addWallet]);
 
 	// Game
 	app.get(`${_prefix}/game/history-list`, [authenticateToken, AdminGameController.loadGameHistory]);

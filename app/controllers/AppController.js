@@ -37,11 +37,11 @@ exports.dev = async (req, res) => {
 	// const simulator = new GameSimulatorTest();
 	// await simulator.createGameForAllUser();
 	// 
-	const SW = new SolanaWallet();
-	const info = await SW.getWalletInfo('wage auto fluid sketch solar news pear profit soon ladder drama various');
-	console.log(info);
+	// const SW = new SolanaWallet();
+	// const info = await SW.getWalletInfo('wage auto fluid sketch solar news pear profit soon ladder drama various');
+	// console.log(info);
 	const Sol = new Solana();
-	const test = await Sol.getRate(); console.log(test);
+	const test = await Sol.getSolBalance('3UqiAthJCdNVAc1neWWfqmkBwE6Byjadnfq9hgB4X1FR'); console.log(test);
 	
 	res.render('dev', { title: '4Dev' });
 }
