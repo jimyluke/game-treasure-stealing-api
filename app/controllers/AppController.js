@@ -83,8 +83,13 @@ exports.getGameInfo = async (req, res) => {
 		}
 	};
 
+	const sol_usd_rate = await fn.getRateSol();
+	const primary_wallet = await fn.getPrimaryWallet();
+
 	res.json({ 
 		success: true,
+		sol_usd_rate: sol_usd_rate,
+		primary_wallet: primary_wallet,
 		game_info: game_info
 	});
 }

@@ -6,6 +6,7 @@ const _ = require('lodash');
 var moment = require('moment');
 const format_date = 'YYYY-MM-DD 17:00:00';
 const timezone = 'UTC';
+const Option = require('./models/Option');
 
 /**
  * [dateRange description]
@@ -63,4 +64,14 @@ module.exports.getExtraTicketsByToken = async function(token_address){
     }
     console.log(point);
     return point;
+}
+
+module.exports.getRateSol = async function(){
+    let rate = await Option._get('sol_usd_rate') || 1;
+    rate = parseFloat(rate);
+    return rate;
+}
+
+module.exports.getPrimaryWallet = async function(){
+    return await Option._get('primary_wallet');
 }
