@@ -146,6 +146,10 @@ exports.enterGame = async (req, res) => {
 
 	let currentGame = await user.getCurrentGame();
 	let game_playing_id = 0;
+
+	const game_info = await user.getCalGameInfo();
+	let json_data = game_info;
+
 	if(currentGame === null){
 		currentGame = await GamePlaying.create({
 			user_id: user_id,
@@ -167,9 +171,6 @@ exports.enterGame = async (req, res) => {
 
 	game_playing_id = parseInt(currentGame.id);
 
-	const game_info = await user.getCalGameInfo();
-	let json_data = game_info;
-
 	const helper = new GameHelper();
 	helper.PrepareCalculation();
 	
@@ -178,5 +179,16 @@ exports.enterGame = async (req, res) => {
 		game_info: game_info,
 		game_id: game_id,
 		game_playing_id: game_playing_id
+	});
+}
+
+exports.getBalanceWallet = async (req, res) => {
+	const wallet_address = req.body.wallet_address;
+	const wallet = req.user.wallet;
+	const Sol = new Solana();
+	const balance = await Sol.getSolBalance(wallet);
+	res.json({ 
+		success: true,
+		balance: parseFloat(balance)
 	});
 }
