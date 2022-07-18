@@ -34,6 +34,13 @@ var User = sequelize.define('User', {
 	underscored  	: true
 });
 
+User.getWalletAddressById = async function(user_id){
+	const user = await User.findByPk(user_id);
+	if(!user)
+		return '';
+	return user.wallet_address;
+}
+
 User.prototype.getCurrentGame = async function(){
 	const {start_date, end_date} = fn.dateRange();
 	let game = await GamePlaying.findOne({where: {

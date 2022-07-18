@@ -1,13 +1,14 @@
 /**
  * User Controller
  */
-const { Hero, UserMeta, GamePlaying } = require('../models');
+const { Hero, UserMeta, GamePlaying, Transaction } = require('../models');
 const { Op } = require("sequelize");
 const User = require('../models/User');
 const Game = require('../models/Game');
 var moment = require('moment');
 const GameHelper = require('../GameHelper');
 const stripslashes = require('locutus/php/strings/stripslashes');
+const { Solana } = require('../solana');
 
 /**
  * [description]
@@ -109,14 +110,38 @@ exports.updateNonNftEntries = async (req, res) => {
  * @return {[type]}     [description]
  */
 exports.enterGame = async (req, res) => {
+	const signature = req.body.signature;
+	const timestamp = req.body.timestamp;
 	const user_id = parseInt(req.user.id);
 	const user = await User.findByPk(user_id);
+	const Sol = new Solana(); 
 
 	let game_id = await Game.getCurrentId();
 	// Check game today is created
 	if(!game_id){
 		const game = await Game.create({data: {}, end: 0});
 		game_id = parseInt(game.id);
+	}
+
+	if(!Sol.isValidTransaction(signature, user.wallet_address)){
+		res.json({ 
+			success: false,
+			game_info: {},
+			game_id: 0,
+			game_playing_id: 0,
+			message: 'Invalid transaction signature'
+		});
+		exit;
+	}else{
+		await Transaction.create({
+			type: 'game_payout',
+            amount: 0,
+            event: `game_payout`,
+            user_id: user_id,
+            description: '',
+            signature: signature,
+            game_id: game_id
+		});
 	}
 
 	let currentGame = await user.getCurrentGame();

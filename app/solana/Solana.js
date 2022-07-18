@@ -136,6 +136,20 @@ class Solana {
 	    
 	    return signature;
 	}
+
+	async isValidTransaction(signature, wallet_address){
+		let valid = false;
+		let connection = await this.getConnection();
+		try{
+			const check = await connection.getTransaction(signature);
+			if(check !== null && check.transaction.message.accountKeys[0].toString() === wallet_address){
+				valid = true;
+			}
+		}catch(error){
+			//Console.log(error)
+		}
+		return valid;
+	}
 }
 
 module.exports = Solana;
