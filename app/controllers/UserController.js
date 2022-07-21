@@ -123,7 +123,7 @@ exports.enterGame = async (req, res) => {
 		game_id = parseInt(game.id);
 	}
 
-	if(!Sol.isValidTransaction(signature, user.wallet_address)){
+	if(signature === undefined || signature === '' || !await Sol.isValidTransaction(signature, user.wallet_address)){
 		res.json({ 
 			success: false,
 			game_info: {},
