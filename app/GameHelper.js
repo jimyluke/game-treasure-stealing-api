@@ -131,6 +131,7 @@ class GameHelper {
         }});
         //console.log(games);
         let unique_user_ids = _.map(games, 'user_id');
+        let game_submitted = _.map(games, 'submitted'); //console.log(game_submitted);
         unique_user_ids = unique_user_ids.map(function (id) { return parseInt(id); });
 
         // Query all hero active of all user submitted a game today
@@ -143,15 +144,19 @@ class GameHelper {
 
         const AVG_price_per_entry = 0.9;
         const hero_tier_nne = await HeroTierTicket.findOne({where: {tier: 'Non-NFT'}});
-        const non_nft_entries = await UserMeta.findAll({where: {user_id: unique_user_ids, meta_key: 'non_nft_entries'}});
+        //const non_nft_entries = await UserMeta.findAll({where: {user_id: unique_user_ids, meta_key: 'non_nft_entries'}});
+        //console.log(non_nft_entries)
         let entry_total_nne = 0;
         let ticket_total_nne = 0;
         let TotalSpent_nne = 0;
-        non_nft_entries.forEach( nne => {
-            const nne_no = parseInt(nne.meta_value);
-            entry_total_nne += nne_no;
-            ticket_total_nne += nne_no * parseInt(hero_tier_nne.tickets);
-            TotalSpent_nne += nne_no*AVG_price_per_entry;
+        game_submitted.forEach( submitted => {
+            const last_sm = _.last(submitted); console.log(last_sm);
+            if(last_sm){
+                let nne_no = last_sm.non_entry_total;
+                entry_total_nne += nne_no;
+                ticket_total_nne += nne_no * parseInt(hero_tier_nne.tickets);
+                TotalSpent_nne += nne_no*AVG_price_per_entry;
+            }
         });
 
         const tokens = await Token.findAll({where: {token_address: tokens_address}});
@@ -318,6 +323,7 @@ class GameHelper {
             }
         }
 
+        await Hero.resetStatus();
         await Game.setEndGame();
 
         return true;

@@ -215,6 +215,7 @@ exports.info = async (req, res) => {
 	const {heroes_mint, heroes_data} = await user.getHeroes();
 	const non_nft_entries = await user.getNonNftEntries();
 	const current_entries_calc = await user.getCurrentEntriesCalc();
+	const submitted = await user.getSubmitted();
 	const currentGame = await user.getCurrentGame();
 	let game_playing_id = 0, game_id = 0;
 	if(currentGame !== null){
@@ -232,7 +233,8 @@ exports.info = async (req, res) => {
 			heroes: heroes_mint,
 			heroes_data: heroes_data,
 			non_nft_entries: parseInt(non_nft_entries),
-			current_entries: current_entries_calc
+			current_entries: current_entries_calc,
+			submitted: submitted
 		}
 	});
 }

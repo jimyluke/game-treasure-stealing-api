@@ -159,10 +159,12 @@ User.prototype.getCalGameInfo = async function() {
 			NoRakePrizePool: 0,
             PostRakePrizePool: 0,
             entry_total: 0,
+            non_entry_total: 0,
             ticket_total: 0,
             user_total: 0,
             EstUsers: 0,
-            EstRakePerDay: 0
+            EstRakePerDay: 0,
+            tokens: []
 		}
 	}
 	
@@ -172,16 +174,21 @@ User.prototype.getCalGameInfo = async function() {
 	const NoRakeEV = (ChanceOfWinning*game_calc.NoRakePrizePool)+(-ChanceNotWin*TotalSpent);
 	const PostRakeEV = (ChanceOfWinning*game_calc.PostRakePrizePool)+(-ChanceNotWin*TotalSpent);
 
+	// Get current game
+	const currentGame = await this.getCurrentGame();
+
 	entry_cal.TotalSpent = TotalSpent;
 	entry_cal.entry_total = entry_total;
+	entry_cal.non_entry_total = non_nft_entries;
 	entry_cal.ticket_total = ticket_total;
 	entry_cal.ChanceOfWinning = ChanceOfWinning;
 	entry_cal.ChanceNotWin = ChanceNotWin;
 	entry_cal.NoRakeEV = NoRakeEV;
 	entry_cal.PostRakeEV = PostRakeEV;
+	entry_cal.tokens = _.isEmpty(currentGame.heroes)? []: JSON.parse(currentGame.heroes);
 	//console.log(entry_cal);
 	//UserMeta._update(user_id, 'current_entries_calc', JSON.stringify(entry_cal));
-	const currentGame = await this.getCurrentGame();
+	
 	if(currentGame !== null){
 		currentGame.update({data: entry_cal});
 		currentGame.save();
@@ -199,9 +206,18 @@ User.prototype.getCurrentEntriesCalc = async function() {
 	const currentGame = await this.getCurrentGame();
 	let current_entries_calc = currentGame !== null? currentGame.data: {};
 	if(_.isEmpty(current_entries_calc)){
-		current_entries_calc = JSON.parse('{"TotalSpent":0,"entry_total":0,"ticket_total":0,"ChanceOfWinning":0,"ChanceNotWin":0,"NoRakeEV":0,"PostRakeEV":0}');
+		current_entries_calc = JSON.parse('{"TotalSpent":0, "entry_total":0, "non_entry_total":0, "ticket_total":0, "ChanceOfWinning":0, "ChanceNotWin":0, "NoRakeEV":0, "PostRakeEV":0}');
 	}
 	return current_entries_calc;
+}
+
+User.prototype.getSubmitted = async function(){
+	const currentGame = await this.getCurrentGame();
+	let submitted = currentGame !== null? currentGame.submitted: [];
+	if(_.isEmpty(submitted)){
+		submitted = [];
+	}
+	return submitted;
 }
 
 User.prototype.getHeroes = async function(){
