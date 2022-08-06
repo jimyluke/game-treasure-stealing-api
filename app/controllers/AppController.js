@@ -25,7 +25,8 @@ exports.dev = async (req, res) => {
 	
 	const helper = new GameHelper();
 	let data = await helper.PrizeCalc();
-	console.log(data);
+	//console.log(data);
+
 	await Hero.resetStatus();
 	// req.app.io.of('gts.dashboard').emit('game_update', {
 	// 	data: data
@@ -43,6 +44,7 @@ exports.dev = async (req, res) => {
 	// const info = await SW.getWalletInfo('wage auto fluid sketch solar news pear profit soon ladder drama various');
 	// console.log(info);
 	//const Sol = new Solana();
+	//Sol.getAmountBySignature('5NL2iYdxNWJzNUJSSacJmKD8UuHdeo9PYQrj2senuf9ywmBZYK23B4Z6ZS1B2qNvFSNg9Q3ispbTaXTtSTnRuswC');
 	//const test = await new Solana().getTokensByOwner('26kuD3FoQreG6Q1B3KgajhPPhYcgEf2waam5hcdjDVd5'); console.log(test);
 	
 	res.render('dev', { title: '4Dev' });

@@ -150,7 +150,7 @@ class GameHelper {
         let ticket_total_nne = 0;
         let TotalSpent_nne = 0;
         game_submitted.forEach( submitted => {
-            const last_sm = _.last(submitted); console.log(last_sm);
+            const last_sm = _.last(submitted); //console.log(last_sm);
             if(last_sm){
                 let nne_no = last_sm.non_entry_total;
                 entry_total_nne += nne_no;

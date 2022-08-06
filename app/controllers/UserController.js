@@ -131,7 +131,8 @@ exports.enterGame = async (req, res) => {
 	if(signature === undefined || signature === '' || !await Sol.isValidTransaction(signature, user.wallet_address)){
 		res.json({ 
 			success: false,
-			game_info: {},
+			user_game_info: {},
+			submitted: [],
 			game_id: 0,
 			game_playing_id: 0,
 			message: 'Invalid transaction signature'
@@ -143,15 +144,15 @@ exports.enterGame = async (req, res) => {
 	let game_playing_id = 0;
 
 	const game_info = await user.getCalGameInfo();
-	let json_data = game_info;
+	//console.log('x1', game_info);
 	let submitted = [];
 
 	if(currentGame === null){
-		submitted.push(json_data);
+		submitted.push(game_info);
 		currentGame = await GamePlaying.create({
 			user_id: user_id,
 			game_id: game_id,
-			data: json_data,
+			data: game_info,
 			won: 0,
 			bonus: 0,
 			note: '',
@@ -163,22 +164,21 @@ exports.enterGame = async (req, res) => {
 		});
 		
 	}else{
-		let new_submitted = [];
-		submitted = currentGame.submitted;
-		if(_.isEmpty(submitted)){
-			submitted = [];
+		let new_submitted = currentGame.submitted;
+		if(_.isEmpty(new_submitted)){
+			new_submitted = [];
 		}
-		new_submitted = submitted.concat([json_data]);
-		currentGame.game_id = game_id;
-		currentGame.submitted = new_submitted;
-		let update = await currentGame.save();
+		new_submitted.push(game_info);
+		await GamePlaying.update({game_id: game_id, submitted: new_submitted},{where: {id: parseInt(currentGame.id)}});
+		submitted = new_submitted;
 	}
 
 	game_playing_id = parseInt(currentGame.id);
+	const amount = await Sol.getAmountBySignature(signature);
 
 	await Transaction.create({
 		type: 'game_payout',
-        amount: 0,
+        amount: amount,
         event: `game_payout`,
         user_id: user_id,
         description: '',
@@ -199,6 +199,12 @@ exports.enterGame = async (req, res) => {
 	});
 }
 
+/**
+ * Get balance of a wallet
+ * @param  {[type]} req [description]
+ * @param  {[type]} res [description]
+ * @return {[type]}     [description]
+ */
 exports.getBalanceWallet = async (req, res) => {
 	const wallet_address = req.body.wallet_address;
 	const wallet = req.user.wallet;
