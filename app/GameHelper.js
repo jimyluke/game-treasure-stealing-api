@@ -285,7 +285,7 @@ class GameHelper {
      * The function should just pull random tickets until all [winners] prizes are distributed
      */
     async PrizesDistribution(){
-        const prize_data = await this.PrizeCalc(); console.log(prize_data);
+        const prize_data = await this.PrizeCalc(); //console.log(prize_data);
         let user_ids = this.unique_user_ids;
         const fromPrivateKey = await fn.getPrimaryWallet();
         const winning_users_count = this.winning_users_count;
@@ -323,8 +323,8 @@ class GameHelper {
             }
         }
 
-        await Hero.resetStatus();
         await Game.setEndGame();
+        await Hero.resetStatus();
 
         return true;
     }

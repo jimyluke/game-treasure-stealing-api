@@ -175,13 +175,14 @@ exports.enterGame = async (req, res) => {
 
 	game_playing_id = parseInt(currentGame.id);
 	const amount = await Sol.getAmountBySignature(signature);
+	let description = `Paid for ${game_info.entry_total}`;
 
 	await Transaction.create({
 		type: 'game_payout',
         amount: amount,
         event: `game_payout`,
         user_id: user_id,
-        description: '',
+        description: description,
         signature: signature,
         game_id: game_id,
         game_playing_id: game_playing_id

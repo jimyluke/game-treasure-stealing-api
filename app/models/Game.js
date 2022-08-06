@@ -61,7 +61,8 @@ Game.getPot = async function(){
 	let bonus = 0;
 	if(playing_list){
 		playing_list.forEach( playing => {
-			const data = playing.data;
+			let submitted = !_.isEmpty(playing.submitted)? playing.submitted: [];
+			const data = _.last(submitted);
 			total += parseFloat(data.TotalSpent);
 		})
 	}
