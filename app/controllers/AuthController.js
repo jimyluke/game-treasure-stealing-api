@@ -212,6 +212,8 @@ exports.info = async (req, res) => {
 	let email = req.user.email
 	req.user.avatar = gravatar.url(email);
 	const user = await User.findByPk(user_id);
+	user.checkAndSyncHeroes();
+	
 	const {heroes_mint, heroes_data} = await user.getHeroes();
 	const non_nft_entries = await user.getNonNftEntries();
 	const current_entries_calc = await user.getCurrentEntriesCalc();
