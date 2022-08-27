@@ -67,16 +67,28 @@ module.exports.getExtraTicketsByToken = async function(token_address){
     return point;
 }
 
+/**
+ * Get rate sol => usd from settings (this value will automatic update every minute)
+ * @return float rate [Rate SOL>USD]
+ */
 module.exports.getRateSol = async function(){
     let rate = await Option._get('sol_usd_rate') || 1;
-    rate = parseFloat(rate); console.log('rate', rate)
+    rate = parseFloat(rate);
     return rate;
 }
 
+/**
+ * Get primary wallet address from settings
+ * @return {[type]} [description]
+ */
 module.exports.getPrimaryWallet = async function(){
     return await Option._get('primary_wallet');
 }
 
+/**
+ * Get primary private key from a admin wallet
+ * @return {[type]} [description]
+ */
 module.exports.getPrimaryPrivateKey = async function(){
     const wallet = await Option._get('primary_wallet');
     const find = await AdminWallet.findOne({where: {wallet_address: wallet}});

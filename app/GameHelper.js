@@ -259,7 +259,6 @@ class GameHelper {
         let rakePrizeNextDay = 0;
         let bonenosher_status = await this.getBonenosherStatus();
 
-        bonenosher_status = 'sleep'; //For test
         if(bonenosher_status === 'sleep'){
             paidOut = entry_calc.NoRakePrizePool*80/100;
             rakePrizeNextDay = entry_calc.NoRakePrizePool*20/100;
@@ -326,9 +325,54 @@ class GameHelper {
                         const signature = await Sol.transferSOL(fromPrivateKey, toAddress, amount);
                         if(signature){
                             const user = await User.findByPk(parseInt(user_id));
-                            const game_id = await user.getCurrentGameId();
+                            const game = await user.getCurrentGame();
+                            let game_id = game !== null? parseInt(game.id): 0;
+                            let ran_token = '';
+
                             if(game_id){
-                                GamePlaying.update({finished: 1}, {where: {id: game_id}});
+                                let last_submited = _.last(game.submitted);
+                                let tokens_submited = last_submited.tokens;
+                                // Random token (hero) win game
+                                ran_token = tokens_submited[Math.floor(Math.random()*tokens_submited.length)];
+
+                                // Handle set the token times queued
+                                await Promise.all(tokens_submited.map(async (token) => {
+                                    const hero = await Hero.findOne({where: {mint: token}});
+
+                                    /*
+                                    +Times Queued (DB stores everytime user pays with that hero)
+                                    +Times Won (DB Stores everytime they win SOL)
+                                    +SOL Earned (DB Stores how much total they've won)
+                                    */
+                                    let times_queued = 0;
+                                    let times_won = 0;
+                                    let sol_earned = 0;
+
+                                    if(hero !== null){
+                                        let extra_data = hero.extra_data;
+                                        if(typeof extra_data === 'object'){
+                                            if(token === ran_token){
+                                                times_queued += extra_data.times_queued;
+                                                times_won += extra_data.times_won;
+                                                sol_earned = extra_data.sol_earned + amount;
+                                            }else{
+                                                times_queued += extra_data.times_queued;
+                                                times_won = extra_data.times_won;
+                                                sol_earned = extra_data.sol_earned;
+                                            }
+                                        }
+
+                                        extra_data = {
+                                            times_queued: times_queued,
+                                            times_won: times_won,
+                                            sol_earned: sol_earned
+                                        }
+
+                                        Hero.update({extra_data: extra_data}, {where: {mint: token} });
+                                    }
+                                }));
+
+                                GamePlaying.update({finished: 1, winning_hero: ran_token}, {where: {id: game_id}});
                             }
 
                             const transaction = await Transaction.create({
@@ -338,7 +382,8 @@ class GameHelper {
                                 user_id: user_id,
                                 description: `Reward SOL ${amount} for user_id = ${user_id} `,
                                 signature: signature,
-                                game_playing_id: game_id
+                                game_playing_id: game_id,
+                                token: token
                             });
                         }
                     }catch(error){
