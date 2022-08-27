@@ -7,6 +7,7 @@ var moment = require('moment');
 const format_date = 'YYYY-MM-DD 17:00:00';
 const timezone = 'UTC';
 const Option = require('./models/Option');
+const AdminWallet = require('./models/AdminWallet');
 
 /**
  * [dateRange description]
@@ -68,10 +69,18 @@ module.exports.getExtraTicketsByToken = async function(token_address){
 
 module.exports.getRateSol = async function(){
     let rate = await Option._get('sol_usd_rate') || 1;
-    rate = parseFloat(rate);
+    rate = parseFloat(rate); console.log('rate', rate)
     return rate;
 }
 
 module.exports.getPrimaryWallet = async function(){
     return await Option._get('primary_wallet');
+}
+
+module.exports.getPrimaryPrivateKey = async function(){
+    const wallet = await Option._get('primary_wallet');
+    const find = await AdminWallet.findOne({where: {wallet_address: wallet}});
+    if(find !== null)
+        return find.private_key;
+    return '';
 }

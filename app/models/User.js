@@ -79,6 +79,10 @@ User.prototype.getCurrentGame = async function(){
     return game;
 }
 
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
 User.prototype.getCurrentGameId = async function(){
 	const game = await this.getCurrentGame();
     return game !== null? parseInt(game.id): 0;
@@ -159,6 +163,7 @@ User.prototype.getCalGameInfo = async function() {
 			NoRakePrizePool: 0,
             PostRakePrizePool: 0,
             entry_total: 0,
+            price_per_entry: 0,
             non_entry_total: 0,
             ticket_total: 0,
             user_total: 0,
@@ -179,6 +184,7 @@ User.prototype.getCalGameInfo = async function() {
 
 	entry_cal.TotalSpent = TotalSpent;
 	entry_cal.entry_total = entry_total;
+	entry_cal.price_per_entry = price_per_entry;
 	entry_cal.non_entry_total = non_nft_entries;
 	entry_cal.ticket_total = ticket_total;
 	entry_cal.ChanceOfWinning = ChanceOfWinning;
@@ -197,11 +203,19 @@ User.prototype.getCalGameInfo = async function() {
 	return entry_cal;
 }
 
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
 User.prototype.getNonNftEntries = async function() {
 	const game = await this.getCurrentGame();
     return game !== null? parseInt(game.non_nft_entries): 0;
 }
 
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
 User.prototype.getCurrentEntriesCalc = async function() {
 	const currentGame = await this.getCurrentGame();
 	let current_entries_calc = currentGame !== null? currentGame.data: {};
@@ -211,6 +225,10 @@ User.prototype.getCurrentEntriesCalc = async function() {
 	return current_entries_calc;
 }
 
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
 User.prototype.getSubmitted = async function(){
 	const currentGame = await this.getCurrentGame();
 	let submitted = currentGame !== null? currentGame.submitted: [];
@@ -220,6 +238,10 @@ User.prototype.getSubmitted = async function(){
 	return submitted;
 }
 
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
 User.prototype.getHeroes = async function(){
 	let heroes_mint = [];
 	let heroes = await Hero.findAll({ where: { user_id: parseInt(this.id) }});
@@ -243,6 +265,10 @@ User.prototype.getHeroes = async function(){
 	return {heroes_mint: heroes_mint, heroes_data: heroes_arr};
 }
 
+/**
+ * [description]
+ * @return {[type]} [description]
+ */
 User.prototype.updateBalance = async function(amount){
 	let balance = parseFloat(this.balance) || 0;
 	balance += parseFloat(amount);
