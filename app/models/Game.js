@@ -92,6 +92,9 @@ Game.updateBackPot = async function(back_pot, current_game_id){
 
 // Set current game to ended
 Game.setEndGame = async function(current_game_id){
+	if(typeof current_game_id === 'undefined')
+		return false;
+	await GamePlaying.update({finished: 1}, {where: {game_id: current_game_id}});
 	return await Game.updateData({end: 1}, current_game_id);
 }
 

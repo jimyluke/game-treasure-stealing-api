@@ -350,7 +350,7 @@ class GameHelper {
 
                                     if(hero !== null){
                                         let extra_data = hero.extra_data;
-                                        if(typeof extra_data === 'object'){
+                                        if(typeof extra_data === 'object' && extra_data !== null){
                                             if(token === ran_token){
                                                 times_queued += extra_data.times_queued;
                                                 times_won += extra_data.times_won;
@@ -383,7 +383,7 @@ class GameHelper {
                                 description: `Reward SOL ${amount} for user_id = ${user_id} `,
                                 signature: signature,
                                 game_playing_id: game_id,
-                                token: token
+                                token: ran_token
                             });
                         }
                     }catch(error){
