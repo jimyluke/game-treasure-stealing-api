@@ -61,22 +61,27 @@ User.getWalletAddressById = async function(user_id){
 }
 
 // Get current game
-User.prototype.getCurrentGame = async function(){
+User.prototype.getCurrentGame = async function(game_id){
 	const {start_date, end_date} = fn.dateRange();
-	let game = await GamePlaying.findOne({where: {
-		user_id: parseInt(this.id),
-      	created_at: { 
-        	[Op.gt]: start_date,
-        	[Op.lt]: end_date
-      	},
-      	finished: 0
-    }, order: [['id', 'DESC']]});
+	let where = {};
+	if(typeof game_id !== 'undefined'){
+		game_id = parseInt(game_id);
+		where = {
+			game_id: game_id
+		}
+	}else{
+		game_id = 0;
+		where = {
+			user_id: parseInt(this.id),
+	      	created_at: { 
+	        	[Op.gt]: start_date,
+	        	[Op.lt]: end_date
+	      	},
+	      	finished: 0
+	    }
+	}
 
-    // if(game === null){
-    // 	game = await GamePlaying.create({user_id: parseInt(this.id), data: {}, heroes: '[]', finished: 0, non_nft_entries: 0});
-    // }
-
-    return game;
+    return await GamePlaying.findOne({where: where, order: [['id', 'DESC']]});
 }
 
 /**

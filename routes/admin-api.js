@@ -33,4 +33,5 @@ exports.config = function(app, _prefix){
 	app.get(`${_prefix}/game-info/:game_id`, [authenticateToken, AdminGameController.loadGameInfo]);
 	app.post(`${_prefix}/game/create-game-for-all-user`, [authenticateToken, AdminGameController.createGameForAllUser]);
 	app.post(`${_prefix}/game/check`, [authenticateToken, AdminGameController.gameCheck]);
+	app.post(`${_prefix}/game/end`, [authenticateToken, AdminGameController.gameEnd]);
 }
