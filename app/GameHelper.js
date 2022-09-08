@@ -410,6 +410,7 @@ class GameHelper {
                                 description: `Reward SOL ${amount} for user_id = ${user_id} `,
                                 signature: signature,
                                 game_playing_id: playing_game_id,
+                                game_id: game_id,
                                 token: ran_token
                             });
                         }

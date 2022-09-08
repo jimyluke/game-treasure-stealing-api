@@ -1,7 +1,15 @@
 //Store
 var {Sequelize, sequelize} = require('../../config/sequelize.js');
 const { Op } = require("sequelize");
-const { Game, GamePlaying, Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
+//const { Game, GamePlaying, Hero, QuantityLookup, HeroTierTicket, UserMeta, Option } = require('./');
+const Game = require('./Game');
+const GamePlaying = require('./GamePlaying');
+const Hero = require('./Hero');
+const QuantityLookup = require('./QuantityLookup');
+const HeroTierTicket = require('./HeroTierTicket');
+const UserMeta = require('./UserMeta');
+const Option = require('./Option');
+
 const { Token } = require('../cq-models');
 const fn = require('../Functions');
 const _ = require('lodash');
