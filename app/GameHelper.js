@@ -321,7 +321,7 @@ class GameHelper {
         }
 
         // Update token Times queued
-        this.calcTokenTimesQueued(this.game_id);
+        await this.calcTokenTimesQueued(this.game_id);
         // Store in database
         await Game.updateData({result: bonenosher_status, back_pot: rakePrizeNextDay, raked: raked}, this.game_id);
 

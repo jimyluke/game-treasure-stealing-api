@@ -265,13 +265,15 @@ User.prototype.getHeroes = async function(){
 			heroes_arr.push({
 				id: parseInt(hero.id),
 				mint: hero.mint,
-				active: hero.active
+				active: hero.active,
+				extra_data: hero.extra_data
 			});
 		})
 	}
 
 	const heroes_info = await Hero.getTokenInfoByArr(heroes_mint);
 	heroes_arr.forEach( hero => {
+		hero.stats = hero.extra_data;
 		hero.info = _.chain(heroes_info).filter(function (hi) { return hi.token_address === hero.mint }).first().value();
 	})
 
