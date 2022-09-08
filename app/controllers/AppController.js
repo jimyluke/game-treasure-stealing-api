@@ -24,7 +24,7 @@ exports.dev = async (req, res) => {
 	//console.log(dr);
 	
 	const helper = new GameHelper();
-	//let data = await helper.PrizeCalc();
+	await helper.calcTokenTimesQueued(45);
 	// let data = await helper.PrizesDistribution();
 	//console.log(data);
 

@@ -240,13 +240,43 @@ class GameHelper {
             entry_calc.EstRakePerDay = TotalSpent_nne - PostRakePrizePool;
         }
 
-        console.log(entry_calc)
+        // console.log(entry_calc)
         // Update this will use for single user calc [PostRake EV, NoRake EV]
         // Option._update('last_update_entry_calc', JSON.stringify(entry_calc));
         Game.getQueuedThieves(this.game_id);
         await Game.updateData({data: entry_calc}, this.game_id);
 
         return entry_calc;
+    }
+
+    /**
+     * [calcTokenTimesQueued description]
+     * @param  {[type]} game_id [description]
+     * @return {[type]}         [description]
+     */
+    async calcTokenTimesQueued(game_id){
+        game_id = game_id || 0;
+        let default_extra_data = {
+            times_queued: 0,
+            times_won: 0,
+            sol_earned: 0
+        }
+
+        if(!game_id)
+            return;
+
+        let games_playing = await GamePlaying.findAll({where: {game_id: game_id}});
+        await Promise.all(games_playing.map( gplaying => {
+            let last_submited = _.last(gplaying.submitted);
+            let tokens_submited = last_submited.tokens;
+            tokens_submited.forEach( async token => {
+                const hero = await Hero.findOne({where: {mint: token}});
+                let extra_data = hero.extra_data || {};
+                extra_data = Object.assign({}, default_extra_data, extra_data);
+                extra_data.times_queued++;
+                await Hero.update({extra_data: extra_data}, {where: {mint: token} });
+            });
+        }));
     }
 
     /**
@@ -290,6 +320,8 @@ class GameHelper {
             rakePrizeNextDay = rakePrizeNextDay + parseFloat(backPot);
         }
 
+        // Update token Times queued
+        this.calcTokenTimesQueued(this.game_id);
         // Store in database
         await Game.updateData({result: bonenosher_status, back_pot: rakePrizeNextDay, raked: raked}, this.game_id);
 
@@ -375,26 +407,23 @@ class GameHelper {
                                     let sol_earned = 0;
 
                                     if(hero !== null){
-                                        let extra_data = hero.extra_data;
+                                        let extra_data = hero.extra_data || {};
                                         if(typeof extra_data === 'object' && extra_data !== null){
                                             //console.log(token, ran_token);
                                             if(token === ran_token){
-                                                times_queued += extra_data.times_queued;
                                                 times_won += extra_data.times_won;
                                                 sol_earned = extra_data.sol_earned + amount;
                                             }else{
-                                                times_queued += extra_data.times_queued;
                                                 times_won = extra_data.times_won;
                                                 sol_earned = extra_data.sol_earned;
                                             }
                                         }
 
-                                        extra_data = {
-                                            times_queued: times_queued,
+                                        // Update hero (token) stats
+                                        extra_data = Object.assign({}, extra_data, {
                                             times_won: times_won,
                                             sol_earned: sol_earned
-                                        }
-
+                                        });
                                         Hero.update({extra_data: extra_data}, {where: {mint: token} });
                                     }
                                 }));
