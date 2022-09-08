@@ -18,7 +18,8 @@ var Transaction = sequelize.define('Transaction', {
 	game_id 		: Sequelize.BIGINT,
 	description   	: Sequelize.TEXT,
   	signature   	: Sequelize.STRING,
-  	token   		: Sequelize.STRING
+  	token   		: Sequelize.STRING,
+  	sol_cluster   	: Sequelize.STRING
 },{
 	tableName    	: 'game_transactions',
 	createdAt    	: 'created_at',

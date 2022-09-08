@@ -431,6 +431,7 @@ class GameHelper {
                                 GamePlaying.update({finished: 1, winning_hero: ran_token}, {where: {id: playing_game_id}});
                             }
 
+                            const sol_cluster = await fn.getSolCluster();
                             const transaction = await Transaction.create({
                                 type: 'prize',
                                 amount: amount,
@@ -440,7 +441,8 @@ class GameHelper {
                                 signature: signature,
                                 game_playing_id: playing_game_id,
                                 game_id: game_id,
-                                token: ran_token
+                                token: ran_token,
+                                sol_cluster: sol_cluster
                             });
                         }
                     }catch(error){
